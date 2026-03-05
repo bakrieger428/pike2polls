@@ -1,7 +1,7 @@
 'use client';
 
 import { Input, Textarea, Button, Alert } from '@/components/ui';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export interface ContactInfoStepProps {
   initialValues?: {
@@ -39,6 +39,74 @@ export function ContactInfoStep({
     phone?: string;
     address?: string;
   }>({});
+
+  const addressInputRef = useRef<HTMLInputElement>(null);
+
+  // Load Google Places API and initialize autocomplete
+  useEffect(() => {
+    // Only load if we have an API key
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
+    if (!apiKey || !addressInputRef.current) {
+      return;
+    }
+
+    // Check if Google Maps API is already loaded
+    const googleWindow = window as { google?: { maps?: { places?: unknown } } };
+    const hasGoogleMaps = googleWindow.google && googleWindow.google.maps && 'places' in googleWindow.google.maps;
+    if (hasGoogleMaps) {
+      initAutocomplete();
+      return;
+    }
+
+    // Load Google Places API script
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGooglePlacesCallback`;
+    script.async = true;
+    script.defer = true;
+
+    // Set up callback for when script loads
+    (window as { initGooglePlacesCallback?: () => void }).initGooglePlacesCallback = () => {
+      initAutocomplete();
+    };
+
+    document.head.appendChild(script);
+
+    return () => {
+      // Cleanup
+      const globalWindow = window as { initGooglePlacesCallback?: () => void };
+      if (globalWindow.initGooglePlacesCallback) {
+        delete globalWindow.initGooglePlacesCallback;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const initAutocomplete = () => {
+    if (!addressInputRef.current) return;
+
+    const googleWin = window as { google?: { maps?: { places?: { Autocomplete?: new (input: HTMLInputElement, options?: Record<string, unknown>) => { addListener: (event: string, handler: () => void) => void; getPlace: () => { formatted_address?: string } } } } } };
+    if (!googleWin.google?.maps?.places?.Autocomplete) {
+      return;
+    }
+
+    const Autocomplete = googleWin.google.maps.places.Autocomplete;
+    const autocomplete = new Autocomplete(
+      addressInputRef.current,
+      {
+        types: ['address'],
+        componentRestrictions: { country: 'us' },
+        fields: ['formatted_address', 'address_components'],
+      }
+    );
+
+    autocomplete.addListener('place_changed', () => {
+      const place = autocomplete.getPlace();
+      if (place.formatted_address) {
+        setAddress(place.formatted_address);
+        setErrors((prev) => ({ ...prev, address: undefined }));
+      }
+    });
+  };
 
   const validate = (): boolean => {
     const newErrors: { email?: string; phone?: string; address?: string } = {};
@@ -96,6 +164,8 @@ export function ContactInfoStep({
     }
   };
 
+  const hasGooglePlacesApiKey = !!process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6" role="group" aria-labelledby="contact-info-heading">
       <div>
@@ -146,17 +216,25 @@ export function ContactInfoStep({
         required
       />
 
-      <Input
-        id="address"
-        label="Pickup Address"
-        value={address}
-        onChange={handleAddressChange}
-        error={errors.address}
-        autoComplete="street-address"
-        placeholder="123 Main St, Indianapolis, IN 46268"
-        helperText="Enter the address where you would like to be picked up."
-        required
-      />
+      <div>
+        <Input
+          id="address"
+          label="Pickup Address"
+          inputRef={addressInputRef as React.RefObject<HTMLInputElement>}
+          value={address}
+          onChange={handleAddressChange}
+          error={errors.address}
+          autoComplete="street-address"
+          placeholder={hasGooglePlacesApiKey ? "Start typing your address..." : "123 Main St, Indianapolis, IN 46268"}
+          helperText={hasGooglePlacesApiKey ? "Start typing to see address suggestions." : "Enter the address where you would like to be picked up."}
+          required
+        />
+        {!hasGooglePlacesApiKey && (
+          <p className="text-caption-sm text-text-tertiary mt-1">
+            💡 Tip: Add a Google Places API key to enable address autocomplete
+          </p>
+        )}
+      </div>
 
       <Textarea
         id="notes"

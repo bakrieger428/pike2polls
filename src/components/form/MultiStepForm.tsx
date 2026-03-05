@@ -61,11 +61,15 @@ export function MultiStepForm({ onComplete }: MultiStepFormProps) {
   }, [currentStepIndex, goToStep]);
 
   // Submit to Supabase
-  const submitToSupabase = useCallback(async () => {
+  const submitToSupabase = useCallback(async (waiverData?: { liability_waiver: boolean; disclaimer: boolean }) => {
     setIsLoading(true);
     setError(undefined);
 
     try {
+      // Use provided waiver data or fall back to formData
+      const liabilityWaiver = waiverData?.liability_waiver ?? formData.liability_waiver;
+      const disclaimer = waiverData?.disclaimer ?? formData.disclaimer;
+
       // Validate all required fields are present
       if (
         !formData.is_pike_resident ||
@@ -73,8 +77,8 @@ export function MultiStepForm({ onComplete }: MultiStepFormProps) {
         !formData.voting_date ||
         !formData.preferred_time ||
         !formData.address ||
-        !formData.liability_waiver ||
-        !formData.disclaimer
+        !liabilityWaiver ||
+        !disclaimer
       ) {
         throw new Error('Missing required fields');
       }
@@ -90,8 +94,8 @@ export function MultiStepForm({ onComplete }: MultiStepFormProps) {
         phone: formData.phone,
         address: formData.address,
         notes: formData.notes || undefined,
-        liability_waiver_agreed: formData.liability_waiver,
-        disclaimer_agreed: formData.disclaimer,
+        liability_waiver_agreed: liabilityWaiver,
+        disclaimer_agreed: disclaimer,
         status: 'pending',
       };
 
@@ -162,8 +166,10 @@ export function MultiStepForm({ onComplete }: MultiStepFormProps) {
     liability_waiver: boolean;
     disclaimer: boolean;
   }) => {
+    // Update form data first
     setFormData({ ...formData, ...data });
-    submitToSupabase();
+    // Pass the data directly to avoid state synchronization issues
+    submitToSupabase(data);
   };
 
   // Render current step
