@@ -1,0 +1,413 @@
+/*
+ * Pike2ThePolls - Global Styles
+ * WCAG 2.1 AA Compliant
+ * Mobile-first responsive design
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================================
+   BASE STYLES - CSS Reset & Accessibility
+   ============================================================================ */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  /* Ensure responsive images */
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  /* Accessible text sizing */
+  html {
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Smooth scrolling for anchor links */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Respect user's motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  body {
+    @apply bg-background text-text-primary font-sans antialiased;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* Semantic HTML base styles */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold text-text-primary;
+    line-height: 1.2;
+  }
+
+  h1 { @apply text-display-lg; }
+  h2 { @apply text-display-xl; }
+  h3 { @apply text-heading-xl; }
+  h4 { @apply text-heading-lg; }
+  h5 { @apply text-heading-md; }
+  h6 { @apply text-heading-sm; }
+
+  p {
+    @apply text-body-md text-text-secondary;
+  }
+
+  /* Accessible focus styles (WCAG 2.4.7) */
+  *:focus-visible {
+    outline: 3px solid #3b82f6;
+    outline-offset: 2px;
+  }
+
+  /* Skip navigation link (hidden until focused) */
+  .skip-link {
+    @apply absolute -top-full left-0 z-[2000] bg-primary-600 text-white px-4 py-2;
+    transition: top 0.3s;
+  }
+
+  .skip-link:focus {
+    @apply top-0;
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    * {
+      border-width: 2px !important;
+    }
+  }
+}
+
+/* ============================================================================
+   COMPONENT STYLES - Reusable component classes
+   ============================================================================ */
+
+@layer components {
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2;
+    @apply px-6 py-3 rounded-button font-medium;
+    @apply transition-all duration-200;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+    min-height: 44px; /* WCAG touch target minimum */
+    min-width: 44px;
+  }
+
+  .btn:focus-visible {
+    outline: 3px solid #3b82f6;
+    outline-offset: 2px;
+  }
+
+  .btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800;
+    @apply focus-visible:bg-primary-700;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary-500 text-white hover:bg-secondary-600 active:bg-secondary-700;
+    @apply focus-visible:bg-secondary-600;
+  }
+
+  .btn-outline {
+    @apply bg-transparent border-2 border-primary-600 text-primary-600;
+    @apply hover:bg-primary-50 active:bg-primary-100;
+    @apply focus-visible:bg-primary-50;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent text-text-secondary hover:bg-surface-hover;
+    @apply active:bg-neutral-100;
+  }
+
+  .btn-text {
+    @apply bg-transparent text-primary-600 underline-offset-4;
+    @apply hover:underline focus-visible:underline;
+    padding: 0.5rem 1rem;
+  }
+
+  /* Form inputs */
+  .input {
+    @apply w-full px-4 py-3 rounded-input border border-border-dark;
+    @apply bg-background text-text-primary;
+    @apply placeholder:text-text-tertiary;
+    @apply transition-colors duration-200;
+    min-height: 44px; /* WCAG touch target minimum */
+  }
+
+  .input:focus-visible {
+    outline: 3px solid #3b82f6;
+    outline-offset: 2px;
+    border-color: #3b82f6;
+  }
+
+  .input-error {
+    @apply border-error-600;
+  }
+
+  .input-error:focus-visible {
+    border-color: #dc2626;
+    outline-color: #dc2626;
+  }
+
+  .input-success {
+    @apply border-success-600;
+  }
+
+  .input-success:focus-visible {
+    border-color: #16a34a;
+    outline-color: #16a34a;
+  }
+
+  /* Textarea */
+  .textarea {
+    @apply w-full px-4 py-3 rounded-input border border-border-dark;
+    @apply bg-background text-text-primary;
+    @apply placeholder:text-text-tertiary;
+    @apply transition-colors duration-200;
+    min-height: 120px;
+    resize: vertical;
+  }
+
+  .textarea:focus-visible {
+    outline: 3px solid #3b82f6;
+    outline-offset: 2px;
+    border-color: #3b82f6;
+  }
+
+  /* Labels */
+  .label {
+    @apply block text-caption-md font-medium text-text-secondary mb-2;
+  }
+
+  .label-required {
+    @apply text-error-600 ml-1;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-surface rounded-card shadow-card;
+    @apply border border-border-light;
+  }
+
+  .card-hover {
+    @apply transition-shadow duration-200;
+    @apply hover:shadow-md;
+  }
+
+  /* Alert/Notification */
+  .alert {
+    @apply px-4 py-3 rounded-lg border-l-4;
+    @apply flex items-start gap-3;
+  }
+
+  .alert-info {
+    @apply bg-info-50 border-info-600 text-info-800;
+  }
+
+  .alert-success {
+    @apply bg-success-50 border-success-600 text-success-800;
+  }
+
+  .alert-warning {
+    @apply bg-warning-50 border-warning-600 text-warning-800;
+  }
+
+  .alert-error {
+    @apply bg-error-50 border-error-600 text-error-800;
+  }
+
+  /* Progress bar (for multi-step form) */
+  .progress {
+    @apply w-full bg-neutral-200 rounded-full overflow-hidden;
+    height: 0.5rem;
+  }
+
+  .progress-bar {
+    @apply h-full bg-primary-600 transition-all duration-300 ease-out;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-badge;
+    @apply text-caption-md font-medium;
+  }
+
+  .badge-primary {
+    @apply bg-primary-100 text-primary-800;
+  }
+
+  .badge-success {
+    @apply bg-success-100 text-success-800;
+  }
+
+  .badge-error {
+    @apply bg-error-100 text-error-800;
+  }
+
+  .badge-warning {
+    @apply bg-warning-100 text-warning-800;
+  }
+
+  /* Container */
+  .container {
+    @apply mx-auto px-4 sm:px-6 lg:px-8;
+    max-width: 1280px;
+  }
+
+  /* Section */
+  .section {
+    @apply py-16 md:py-20 lg:py-24;
+  }
+
+  /* Container padding (responsive) */
+  .px-container {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Section padding (responsive) */
+  .py-section {
+    @apply py-16 md:py-20 lg:py-24;
+  }
+
+  /* Visually hidden (screen reader only) */
+  .sr-only {
+    @apply absolute w-px h-px p-0 -m-px overflow-hidden;
+    @apply whitespace-nowrap border-0;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  /* Visually hidden but focusable (e.g., skip links) */
+  .sr-only-focusable:focus {
+    @apply static w-auto h-auto p-auto m-auto overflow-auto;
+    @apply whitespace-normal;
+    clip: auto;
+  }
+}
+
+/* ============================================================================
+   UTILITY OVERRIDES - Custom utilities
+   ============================================================================ */
+
+@layer utilities {
+  /* Text balance for headings (when supported) */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Safe area insets for mobile devices */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Print styles */
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+
+    body {
+      @apply text-black bg-white;
+    }
+
+    a[href]:after {
+      content: " (" attr(href) ")";
+    }
+  }
+}
+
+/* Enhanced print styles for confirmation page */
+@media print {
+  /* Hide navigation and non-essential elements */
+  header,
+  footer,
+  .skip-link,
+  .no-print,
+  button:not([onclick*="print"]) {
+    display: none !important;
+  }
+
+  /* Style confirmation for printing */
+  .confirmation-summary {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Ensure text is readable */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Ensure links show their URLs */
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+
+  /* Remove backgrounds and shadows for print */
+  .card,
+  .bg-neutral-50,
+  .bg-success-50 {
+    background: white !important;
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+
+  /* Ensure sections don't break across pages */
+  .bg-neutral-50,
+  .space-y-3 > div {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Print-friendly colors */
+  .text-primary-600,
+  .text-success-600 {
+    color: #000 !important;
+  }
+
+  /* Hide decorative elements */
+  svg {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
