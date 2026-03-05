@@ -56,7 +56,7 @@ git remote add origin https://github.com/YOUR_USERNAME/pike2polls.gitgit push -u
     -   Wait for deployment to complete
     -   You'll get a Vercel URL like: `https://pike2polls.vercel.app`
 
-### Option B: Using Vercel CLI
+### Option B: Using Vercel CLI 
 
 ```bash
 # Install Vercel CLInpm i -g vercel# Login to Vercelvercel login# Deploy to Vercelvercel# Follow the prompts:# - Set up and deploy? Y# - Which scope? Your account# - Link to existing project? N (create new)# - Project name: pike2polls# - In which directory is your code located? ./# - Override settings? N (use detected Next.js settings)
