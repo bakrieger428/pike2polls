@@ -5,6 +5,8 @@ import { Button, Card, Alert } from '@/components/ui';
 import { Container } from '@/components/layout';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Admin Dashboard Page
  *

@@ -4,6 +4,8 @@ import { MultiStepForm } from '@/components/form';
 import { Container } from '@/components/layout';
 import { Alert } from '@/components/ui';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Sign Up for a Ride | Pike2ThePolls',
   description: 'Pike Township residents can sign up for free rides to polling places on election day. Complete our simple form to request your ride today.',

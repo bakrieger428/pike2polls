@@ -51,6 +51,12 @@ export interface FooterProps {
   sections?: FooterSection[];
 
   /**
+   * Campaign finance disclosure (Indiana legal requirement)
+   * Must be at least 7pt font size and clearly conspicuous
+   */
+  campaignDisclosure?: string;
+
+  /**
    * Additional footer content
    */
   children?: React.ReactNode;
@@ -94,6 +100,7 @@ export function Footer({
   organization = 'Pike2ThePolls',
   contact,
   sections = defaultSections,
+  campaignDisclosure = 'Paid for by L416 PAC and authorized by the Committee to Elect Annette Johnson for Pike Township Trustee.',
   children,
 }: FooterProps) {
   return (
@@ -217,6 +224,11 @@ export function Footer({
         {/* Copyright */}
         <p className="mt-8 pt-8 border-t border-border-light text-caption-md text-text-tertiary text-center">
           {copyright}
+        </p>
+
+        {/* Campaign Finance Disclosure (Indiana Legal Requirement) */}
+        <p className="mt-4 text-xs leading-relaxed text-text-secondary text-center" style={{ fontSize: '12px', minHeight: '14px' }}>
+          {campaignDisclosure}
         </p>
       </div>
     </footer>

@@ -4,6 +4,8 @@ import { Container } from '@/components/layout';
 import { Alert } from '@/components/ui';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Volunteer Signup - Pike2ThePolls',
   description: 'Sign up to volunteer with Pike2ThePolls and help Pike Township residents get to the polls.',

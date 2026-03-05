@@ -7,6 +7,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { Input, Button, Alert, Card } from '@/components/ui';
 import { Container } from '@/components/layout';
 
+export const dynamic = 'force-dynamic';
+
 export default function AdminLoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();

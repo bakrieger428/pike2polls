@@ -17,36 +17,6 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 /**
- * Validate that Supabase environment variables are set
- * @throws {Error} If environment variables are missing
- */
-function validateSupabaseConfig() {
-  if (!supabaseUrl) {
-    throw new Error(
-      'Missing env variable: NEXT_PUBLIC_SUPABASE_URL. ' +
-      'Please follow the setup instructions in SUPABASE_DEPLOYMENT.md'
-    );
-  }
-
-  if (!supabaseAnonKey) {
-    throw new Error(
-      'Missing env variable: NEXT_PUBLIC_SUPABASE_ANON_KEY. ' +
-      'Please follow the setup instructions in SUPABASE_DEPLOYMENT.md'
-    );
-  }
-
-  // Validate URL format
-  try {
-    new URL(supabaseUrl);
-  } catch {
-    throw new Error(
-      `Invalid NEXT_PUBLIC_SUPABASE_URL format: ${supabaseUrl}. ` +
-      'Should be a valid URL (e.g., https://your-project.supabase.co)'
-    );
-  }
-}
-
-/**
  * Create and export Supabase client singleton
  *
  * The client is created with the anon key, which is safe for client-side use.
@@ -57,17 +27,22 @@ function validateSupabaseConfig() {
  */
 let supabaseInstance: SupabaseClient | null = null;
 
-export function getSupabaseClient(): SupabaseClient {
-  // Validate environment variables
-  validateSupabaseConfig();
-
+function createSupabaseClient(): SupabaseClient {
   // Return existing instance if already created (singleton pattern)
   if (supabaseInstance) {
     return supabaseInstance;
   }
 
+  // Validate environment variables
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      'Missing Supabase environment variables. ' +
+      'Please ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.'
+    );
+  }
+
   // Create new Supabase client
-  supabaseInstance = createClient(supabaseUrl!, supabaseAnonKey!, {
+  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       // Auto-refresh token sessions
       autoRefreshToken: true,
@@ -94,19 +69,39 @@ export function getSupabaseClient(): SupabaseClient {
 }
 
 /**
- * Export default Supabase client instance
- * Use this for most operations
+ * Export a function to get the Supabase client
+ * This prevents the client from being created during build time
  *
  * @example
  * ```ts
- * import supabase from '@/lib/supabase';
+ * import { getSupabaseClient } from '@/lib/supabase';
  *
+ * const supabase = getSupabaseClient();
  * const { data, error } = await supabase
  *   .from('signups')
  *   .select('*');
  * ```
  */
-export const supabase = getSupabaseClient();
+export { createSupabaseClient as getSupabaseClient };
+
+/**
+ * Export the Supabase client as a getter function to prevent build-time initialization
+ * This ensures the client is only created when actually accessed at runtime
+ * Use: import { supabase } from '@/lib/supabase'; then await supabase.auth.getUser()
+ */
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(target, prop) {
+    const client = createSupabaseClient();
+    return client[prop as keyof SupabaseClient];
+  },
+});
+
+/**
+ * Export a default getter for backward compatibility
+ */
+export default function getDefaultClient() {
+  return createSupabaseClient();
+}
 
 /**
  * Database table names (type-safe constants)
