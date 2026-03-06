@@ -8,3 +8,5 @@ export { AdminProtected } from './AdminProtected';
 export type { AdminProtectedProps } from './AdminProtected';
 
 export { ErrorBoundary } from './ErrorBoundary';
+
+export { VolunteerEditModal } from './VolunteerEditModal';
