@@ -253,8 +253,8 @@ export function ConfirmationStep({ formData, onRestart, error, isLoading }: Conf
       <div className="text-center no-print">
         <p className="text-body-md text-text-secondary mb-4">
           Have questions? Contact us at{' '}
-          <a href="mailto:trustee@pike2thepolls.com" className="text-primary-600 underline hover:text-primary-700">
-            trustee@pike2thepolls.com
+          <a href="mailto:support@pike2thepolls.com" className="text-primary-600 underline hover:text-primary-700">
+            support@pike2thepolls.com
           </a>
           {' '}or{' '}
           <a href="tel:3179781131" className="text-primary-600 underline hover:text-primary-700">
