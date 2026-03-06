@@ -184,8 +184,21 @@ Or connect your GitHub repository to Vercel for automatic deployments on push to
 Add these in Vercel Project Settings:
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_urlNEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_MAPBOX_TOKEN=Your_mapbox_token_here
 ```
+
+### Planned Features
+
+**Rider Dispatch Grouping Feature** (In Development)
+
+A feature to optimize driver dispatch by:
+- Grouping riders by voting date/time and geographic proximity
+- Assigning drivers to rider groups
+- Generating route manifests for election day
+
+See: [`DISPATCH_FEATURE_PLAN.md`](./DISPATCH_FEATURE_PLAN.md) for full implementation details.
 
 ## Admin Dashboard
 
