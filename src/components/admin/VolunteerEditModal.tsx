@@ -113,6 +113,7 @@ export function VolunteerEditModal({ volunteer, onClose, onSave }: VolunteerEdit
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <Card className="max-w-2xl w-full max-h-[85vh] flex flex-col">
+        {/* Header - Fixed, doesn't scroll */}
         <div className="p-6 flex-shrink-0">
           <h3 className="text-heading-xl font-semibold text-text-primary mb-2">
             Edit Volunteer Information
@@ -120,17 +121,17 @@ export function VolunteerEditModal({ volunteer, onClose, onSave }: VolunteerEdit
           <p className="text-body-sm text-text-secondary">
             Update volunteer details and driver information
           </p>
+          {error && (
+            <div className="mt-4">
+              <Alert variant="error" role="alert">
+                {error}
+              </Alert>
+            </div>
+          )}
         </div>
 
-        {error && (
-          <div className="mb-6 flex-shrink-0">
-            <Alert variant="error" role="alert">
-              {error}
-            </Alert>
-          </div>
-        )}
-
-        <div className="overflow-y-auto flex-1 px-6">
+        {/* Scrollable form content */}
+        <div className="flex-1 overflow-y-auto px-6">
           <form onSubmit={handleSubmit} className="space-y-6 pb-6">
             {/* Basic Information */}
             <div>
@@ -319,7 +320,7 @@ export function VolunteerEditModal({ volunteer, onClose, onSave }: VolunteerEdit
                       <select
                         value={formData.needs_gas_reimbursement}
                         onChange={(e) => handleChange('needs_gas_reimbursement', e.target.value)}
-                        className="w-full px-3 py-3 py-2 border border-border-dark rounded-md"
+                        className="w-full px-3 py-2 border border-border-dark rounded-md"
                       >
                         <option value="">Select...</option>
                         <option value="true">Yes</option>
@@ -344,29 +345,10 @@ export function VolunteerEditModal({ volunteer, onClose, onSave }: VolunteerEdit
                 className="w-full px-3 py-2 border border-border-dark rounded-md"
               />
             </div>
-
-            {/* Actions */}
-            <div className="flex gap-3 justify-end pt-4 border-t border-border-light">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                disabled={isLoading}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                isLoading={isLoading}
-              >
-                Save Changes
-              </Button>
-            </div>
           </form>
         </div>
 
-        {/* Action buttons outside scrollable area */}
+        {/* Action buttons - Fixed at bottom, outside scrollable area */}
         <div className="p-6 border-t border-border-light flex gap-3 justify-end flex-shrink-0">
           <Button
             type="button"
@@ -377,13 +359,13 @@ export function VolunteerEditModal({ volunteer, onClose, onSave }: VolunteerEdit
             Cancel
           </Button>
           <Button
-            type="button"
+            type="submit"
             variant="primary"
+            isLoading={isLoading}
             onClick={(e) => {
               e.preventDefault();
               handleSubmit(e as any);
             }}
-            isLoading={isLoading}
           >
             Save Changes
           </Button>
