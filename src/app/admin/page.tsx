@@ -19,6 +19,7 @@ function DashboardContent() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'signups' | 'volunteers'>('signups');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: 'signup' | 'volunteer' } | null>(null);
 
   useEffect(() => {
     loadData();
@@ -87,6 +88,51 @@ function DashboardContent() {
       await loadData();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update status');
+    }
+  };
+
+  const deleteSignup = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from(TABLES.SIGNUPS)
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setDeleteConfirm(null);
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete signup');
+    }
+  };
+
+  const deleteVolunteer = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from(TABLES.VOLUNTEERS)
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setDeleteConfirm(null);
+      await loadData();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete volunteer');
+    }
+  };
+
+  const handleActionChange = (id: string, value: string, type: 'signup' | 'volunteer', name: string) => {
+    if (value === 'delete') {
+      setDeleteConfirm({ id, name, type });
+      return;
+    }
+
+    if (type === 'signup') {
+      updateSignupStatus(id, value as Signup['status']);
+    } else {
+      updateVolunteerStatus(id, value as Volunteer['status']);
     }
   };
 
@@ -208,6 +254,41 @@ function DashboardContent() {
               Retry
             </Button>
           </Alert>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {deleteConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <Card className="max-w-md w-full p-6">
+              <h3 className="text-heading-lg font-semibold text-text-primary mb-4">
+                Confirm Deletion
+              </h3>
+              <p className="text-body-md text-text-secondary mb-6">
+                Are you sure you want to delete <strong>{deleteConfirm.name}</strong>?
+                This action cannot be undone and will permanently remove this record from the database.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteConfirm(null)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    if (deleteConfirm.type === 'signup') {
+                      deleteSignup(deleteConfirm.id);
+                    } else {
+                      deleteVolunteer(deleteConfirm.id);
+                    }
+                  }}
+                >
+                  Delete
+                </Button>
+              </div>
+            </Card>
+          </div>
         )}
 
         {/* Quick Stats */}
@@ -407,12 +488,18 @@ function DashboardContent() {
                             <div className="flex gap-2">
                               <select
                                 value={signup.status}
-                                onChange={(e) => updateSignupStatus(signup.id, e.target.value as Signup['status'])}
+                                onChange={(e) => handleActionChange(
+                                  signup.id,
+                                  e.target.value,
+                                  'signup',
+                                  `${signup.first_name} ${signup.last_name}`
+                                )}
                                 className="px-2 py-1 border border-border-dark rounded text-sm"
                               >
-                                <option value="pending">Pending</option>
-                                <option value="confirmed">Confirmed</option>
-                                <option value="cancelled">Cancelled</option>
+                                <option value="pending" disabled={signup.status === 'pending'}>Pending</option>
+                                <option value="confirmed" disabled={signup.status === 'confirmed'}>Confirmed</option>
+                                <option value="cancelled" disabled={signup.status === 'cancelled'}>Cancelled</option>
+                                <option value="delete">🗑️ Delete...</option>
                               </select>
                             </div>
                           </td>
@@ -489,12 +576,18 @@ function DashboardContent() {
                             <div className="flex gap-2">
                               <select
                                 value={volunteer.status}
-                                onChange={(e) => updateVolunteerStatus(volunteer.id, e.target.value as Volunteer['status'])}
+                                onChange={(e) => handleActionChange(
+                                  volunteer.id,
+                                  e.target.value,
+                                  'volunteer',
+                                  `${volunteer.first_name} ${volunteer.last_name}`
+                                )}
                                 className="px-2 py-1 border border-border-dark rounded text-sm"
                               >
-                                <option value="pending">Pending</option>
-                                <option value="confirmed">Confirmed</option>
-                                <option value="cancelled">Cancelled</option>
+                                <option value="pending" disabled={volunteer.status === 'pending'}>Pending</option>
+                                <option value="confirmed" disabled={volunteer.status === 'confirmed'}>Confirmed</option>
+                                <option value="cancelled" disabled={volunteer.status === 'cancelled'}>Cancelled</option>
+                                <option value="delete">🗑️ Delete...</option>
                               </select>
                             </div>
                           </td>
