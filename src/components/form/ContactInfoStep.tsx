@@ -125,8 +125,15 @@ export function ContactInfoStep({
             await place.fetchFields({ fields: ['formattedAddress'] });
 
             if (place.formatted_address) {
+              // Update React state
               setAddress(place.formatted_address);
               setErrors((prev) => ({ ...prev, address: undefined }));
+              
+              // Update the autocomplete element's value to match
+              const autocompleteElement = placeAutocomplete as any;
+              if (autocompleteElement.value !== undefined) {
+                autocompleteElement.value = place.formatted_address;
+              }
             }
           });
         }
