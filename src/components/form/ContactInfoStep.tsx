@@ -61,10 +61,7 @@ export function ContactInfoStep({
   // Initialize Google Places Autocomplete
   useEffect(() => {
     // Only load if we have an API key
-    let apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
-    if (apiKey) {
-      apiKey = apiKey.replace(/^["']|["']$/g, '');
-    }
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
     if (!apiKey || !addressInputRef.current) {
       return;
     }
@@ -125,15 +122,8 @@ export function ContactInfoStep({
             await place.fetchFields({ fields: ['formattedAddress'] });
 
             if (place.formatted_address) {
-              // Update React state
               setAddress(place.formatted_address);
               setErrors((prev) => ({ ...prev, address: undefined }));
-              
-              // Update the autocomplete element's value to match
-              const autocompleteElement = placeAutocomplete as any;
-              if (autocompleteElement.value !== undefined) {
-                autocompleteElement.value = place.formatted_address;
-              }
             }
           });
         }
@@ -201,6 +191,12 @@ export function ContactInfoStep({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Debug logging
+    console.log("Address value:", address);
+    console.log("Address trimmed:", address.trim());
+    console.log("Input element value:", addressInputRef.current?.value);
+    
     if (validate()) {
       onNext({
         email: email.trim().toLowerCase(),
