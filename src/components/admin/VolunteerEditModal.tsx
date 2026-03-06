@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Card, Button, Alert, Input } from '@/components/ui';
+import { useState } from 'react';
+import { Card, Button, Alert } from '@/components/ui';
 import type { Volunteer } from '@/lib/supabase';
 import { supabase, TABLES } from '@/lib/supabase';
 

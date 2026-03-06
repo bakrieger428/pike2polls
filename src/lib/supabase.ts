@@ -33,14 +33,12 @@ function createSupabaseClient(): SupabaseClient {
     return supabaseInstance;
   }
 
-  // Debug logging - check what's actually loaded
-
   // Validate environment variables
   if (!supabaseUrl || !supabaseAnonKey) {
     const missingVars = [];
     if (!supabaseUrl) missingVars.push('NEXT_PUBLIC_SUPABASE_URL');
     if (!supabaseAnonKey) missingVars.push('NEXT_PUBLIC_SUPABASE_ANON_KEY');
-    
+
     throw new Error(
       'Missing Supabase environment variables. ' +
       'Please ensure ' + missingVars.join(' and ') + ' are set in Vercel.'
@@ -173,6 +171,14 @@ export interface Volunteer {
   time_slots: string[];
   notes?: string;
   status: 'pending' | 'confirmed' | 'cancelled';
+  // Driver-specific fields
+  vehicle_make_model?: string;
+  number_of_seats?: number;
+  license_plate?: string;
+  drive_alone_preference?: 'alone' | 'paired';
+  has_valid_insurance?: boolean;
+  driving_history_issues?: 'yes' | 'speeding_tickets_only' | 'no';
+  needs_gas_reimbursement?: boolean;
 }
 
 export type VolunteerInsert = Omit<Volunteer, 'id' | 'created_at'>;

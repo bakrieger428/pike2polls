@@ -6,7 +6,7 @@ import { Button, Card, Alert } from '@/components/ui';
 import { Container } from '@/components/layout';
 import { supabase, TABLES, type Signup, type Volunteer } from '@/lib/supabase';
 import Link from 'next/link';
-import { AdminProtected } from '@/components/admin';
+import { AdminProtected, VolunteerEditModal } from '@/components/admin';
 import { format } from 'date-fns';
 
 export const dynamic = 'force-dynamic';
@@ -20,6 +20,7 @@ function DashboardContent() {
   const [activeTab, setActiveTab] = useState<'signups' | 'volunteers'>('signups');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: 'signup' | 'volunteer' } | null>(null);
+  const [editingVolunteer, setEditingVolunteer] = useState<Volunteer | null>(null);
 
   useEffect(() => {
     loadData();
@@ -143,7 +144,23 @@ function DashboardContent() {
     // Define CSV headers based on type
     const headers = activeTab === 'signups'
       ? ['Date', 'Name', 'Email', 'Phone', 'Address', 'Voting Date', 'Preferred Time', 'Status']
-      : ['Date', 'Name', 'Email', 'Phone', 'Driver', 'Logistical Support', 'Availability', 'Status'];
+      : [
+          'Date',
+          'Name',
+          'Email',
+          'Phone',
+          'Driver',
+          'Logistical Support',
+          'Availability',
+          'Status',
+          'Vehicle',
+          'Seats',
+          'License Plate',
+          'Drive Preference',
+          'Insurance',
+          'Driving History',
+          'Gas Reimbursement',
+        ];
 
     // Convert data to CSV
     const csvRows = [
@@ -170,8 +187,16 @@ function DashboardContent() {
             volunteer.phone,
             volunteer.is_driver ? 'Yes' : 'No',
             volunteer.is_logistical_support ? 'Yes' : 'No',
-            volunteer.time_slots.join('; '),
+            volunteer.all_days ? 'All days' : volunteer.time_slots.join('; '),
             volunteer.status,
+            // Driver fields (only show value if driver, otherwise empty string)
+            volunteer.is_driver ? (volunteer.vehicle_make_model || '') : '',
+            volunteer.is_driver ? (volunteer.number_of_seats?.toString() || '') : '',
+            volunteer.is_driver ? (volunteer.license_plate || '') : '',
+            volunteer.is_driver ? (volunteer.drive_alone_preference || '') : '',
+            volunteer.is_driver ? (volunteer.has_valid_insurance ? 'Yes' : 'No') : '',
+            volunteer.is_driver ? (volunteer.driving_history_issues || '') : '',
+            volunteer.is_driver ? (volunteer.needs_gas_reimbursement ? 'Yes' : 'No') : '',
           ].join(',');
         }
       }),
@@ -289,6 +314,15 @@ function DashboardContent() {
               </div>
             </Card>
           </div>
+        )}
+
+        {/* Volunteer Edit Modal */}
+        {editingVolunteer && (
+          <VolunteerEditModal
+            volunteer={editingVolunteer}
+            onClose={() => setEditingVolunteer(null)}
+            onSave={loadData}
+          />
         )}
 
         {/* Quick Stats */}
@@ -546,9 +580,17 @@ function DashboardContent() {
                             {format(new Date(volunteer.created_at), 'MM/dd/yyyy')}
                           </td>
                           <td className="px-4 py-3">
-                            <div className="text-body-md font-medium text-text-primary">
+                            <button
+                              onClick={() => setEditingVolunteer(volunteer)}
+                              className="text-body-md font-medium text-primary-600 hover:text-primary-700 hover:underline text-left"
+                            >
                               {volunteer.first_name} {volunteer.last_name}
-                            </div>
+                            </button>
+                            {volunteer.is_driver && volunteer.vehicle_make_model && (
+                              <div className="text-caption-sm text-text-tertiary mt-1">
+                                {volunteer.vehicle_make_model}
+                              </div>
+                            )}
                           </td>
                           <td className="px-4 py-3 text-body-sm text-text-secondary">
                             <a href={`mailto:${volunteer.email}`} className="block hover:text-primary-600">
