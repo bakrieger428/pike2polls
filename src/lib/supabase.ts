@@ -124,6 +124,10 @@ export default function getDefaultClient() {
 export const TABLES = {
   SIGNUPS: 'signups',
   VOLUNTEERS: 'volunteers',
+  GEOCODED_ADDRESSES: 'geocoded_addresses',
+  DRIVER_ASSIGNMENTS: 'driver_assignments',
+  RIDER_GROUPS: 'rider_groups',
+  GROUP_MEMBERS: 'group_members',
 } as const;
 
 /**
@@ -183,6 +187,70 @@ export interface Volunteer {
 
 export type VolunteerInsert = Omit<Volunteer, 'id' | 'created_at'>;
 export type VolunteerUpdate = Partial<VolunteerInsert>;
+
+/**
+ * Dispatch feature type definitions
+ */
+
+/**
+ * Geocoded address cache - stores lat/lon for addresses to avoid re-geocoding
+ */
+export interface GeocodedAddress {
+  id: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  formatted_address?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type GeocodedAddressInsert = Omit<GeocodedAddress, 'id' | 'created_at' | 'updated_at'>;
+
+/**
+ * Rider group - stores grouped riders by voting date/time and location
+ */
+export interface RiderGroup {
+  id: string;
+  voting_date: string;
+  preferred_time: string;
+  group_name?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type RiderGroupInsert = Omit<RiderGroup, 'id' | 'created_at' | 'updated_at'>;
+
+/**
+ * Group member - links riders to groups with pickup order
+ */
+export interface GroupMember {
+  id: string;
+  group_id: string;
+  signup_id: string;
+  pickup_order?: number;
+  created_at: string;
+}
+
+export type GroupMemberInsert = Omit<GroupMember, 'id' | 'created_at'>;
+
+/**
+ * Driver assignment - links drivers to rider groups
+ */
+export interface DriverAssignment {
+  id: string;
+  volunteer_id: string;
+  voting_date: string;
+  preferred_time: string;
+  group_id: string;
+  status: 'assigned' | 'in-progress' | 'completed';
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type DriverAssignmentInsert = Omit<DriverAssignment, 'id' | 'created_at' | 'updated_at'>;
+export type DriverAssignmentUpdate = Partial<Omit<DriverAssignmentInsert, 'volunteer_id' | 'group_id'>>;
 
 /**
  * Helper function to handle Supabase errors
