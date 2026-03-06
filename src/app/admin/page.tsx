@@ -4,16 +4,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button, Card, Alert } from '@/components/ui';
 import { Container } from '@/components/layout';
 import Link from 'next/link';
+import { AdminProtected } from '@/components/admin';
 
 export const dynamic = 'force-dynamic';
 
-/**
- * Admin Dashboard Page
- *
- * Main admin dashboard for managing ride signups.
- * Protected by AdminProtected wrapper in layout.tsx
- */
-export default function AdminDashboardPage() {
+function DashboardContent() {
   const { user, signOut } = useAuth();
 
   const handleSignOut = async () => {
@@ -174,5 +169,13 @@ export default function AdminDashboardPage() {
         </div>
       </Container>
     </div>
+  );
+}
+
+export default function AdminDashboardPage() {
+  return (
+    <AdminProtected requireAdmin={true}>
+      <DashboardContent />
+    </AdminProtected>
   );
 }
