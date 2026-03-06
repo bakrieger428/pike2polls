@@ -57,18 +57,14 @@ export function ContactInfoStep({
       return;
     }
 
-    console.log('🔍 Initializing Google Places autocomplete...');
-    console.log('API Key (first 10 chars):', apiKey.substring(0, 10) + '...');
 
     // Check if Google Maps API is already loaded
     if ((window as any).google?.maps?.places) {
-      console.log('✅ Google Maps API already loaded');
       initializeAutocomplete();
       return;
     }
 
     // Load Google Maps API script with Places library
-    console.log('🔍 Loading Google Maps API script...');
     const script = document.createElement('script');
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleCallback`;
     script.async = true;
@@ -76,37 +72,29 @@ export function ContactInfoStep({
 
     // Add error handling for script loading
     script.onerror = () => {
-      console.error('❌ Failed to load Google Maps API script');
     };
 
     // Set up callback for when script loads
     (window as any).initGoogleCallback = () => {
-      console.log('✅ Google Maps API script loaded, callback fired');
       initializeAutocomplete();
     };
 
     document.head.appendChild(script);
-    console.log('✅ Script added to document head');
 
     function initializeAutocomplete() {
       try {
-        console.log('🔍 Initializing autocomplete functionality...');
         const googleWin = (window as any).google;
 
         if (!googleWin?.maps?.places) {
-          console.error('❌ Google Maps Places library not loaded');
           return;
         }
 
-        console.log('✅ Google Maps Places library loaded');
 
         // Check if input element still exists
         if (!addressInputRef.current) {
-          console.error('❌ Address input element not found');
           return;
         }
 
-        console.log('✅ Address input element found:', addressInputRef.current);
 
         // Use the traditional Autocomplete class instead of PlaceAutocompleteElement
         const autocomplete = new googleWin.maps.places.Autocomplete(
@@ -117,28 +105,21 @@ export function ContactInfoStep({
           }
         );
 
-        console.log('✅ Autocomplete instance created');
 
         // Add listener for place selection
         autocomplete.addListener('place_changed', () => {
-          console.log('🎯 Place selected!');
           const place = autocomplete.getPlace();
-          console.log('Place object:', place);
 
           if (place.formatted_address) {
-            console.log('✅ Updating address state to:', place.formatted_address);
             // Update React state
             setAddress(place.formatted_address);
             setErrors((prev) => ({ ...prev, address: undefined }));
           } else {
-            console.error('❌ No formatted_address in place object');
           }
         });
 
         autocompleteRef.current = autocomplete;
-        console.log('✅ Autocomplete initialization complete');
-      } catch (error) {
-        console.error('❌ Error initializing Google Places autocomplete:', error);
+      } catch {
       }
     }
 
@@ -191,7 +172,6 @@ export function ContactInfoStep({
   };
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('Address input changed:', e.target.value);
     setAddress(e.target.value);
     if (errors.address) setErrors({ ...errors, address: undefined });
   };
@@ -200,11 +180,6 @@ export function ContactInfoStep({
     e.preventDefault();
 
     // Debug logging
-    console.log("📋 Form submission - Address value:", address);
-    console.log("📋 Form submission - Address trimmed:", address.trim());
-    console.log("📋 Form submission - Input element value:", addressInputRef.current?.value);
-    console.log("📋 Form submission - Address state type:", typeof address);
-    console.log("📋 Form submission - Address length:", address.length);
 
     if (validate()) {
       onNext({

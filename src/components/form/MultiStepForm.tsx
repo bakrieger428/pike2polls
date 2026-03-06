@@ -99,7 +99,7 @@ export function MultiStepForm({ onComplete }: MultiStepFormProps) {
         status: 'pending',
       };
 
-      const { data, error: insertError } = await supabase
+      const { error: insertError } = await supabase
         .from(TABLES.SIGNUPS)
         .insert(insertData)
         .select()
@@ -109,13 +109,11 @@ export function MultiStepForm({ onComplete }: MultiStepFormProps) {
         throw insertError;
       }
 
-      console.log('Signup submitted successfully:', data);
       goToStep('confirmation');
       onComplete?.();
     } catch (err) {
       const appError = handleSupabaseError(err);
       setError(appError.message);
-      console.error('Signup submission error:', err);
     } finally {
       setIsLoading(false);
     }

@@ -102,7 +102,7 @@ export function VolunteerMultiStepForm({ onComplete }: VolunteerMultiStepFormPro
         status: 'pending',
       };
 
-      const { data, error: insertError } = await supabase
+      const { error: insertError } = await supabase
         .from('volunteers')
         .insert(insertData)
         .select()
@@ -112,13 +112,11 @@ export function VolunteerMultiStepForm({ onComplete }: VolunteerMultiStepFormPro
         throw insertError;
       }
 
-      console.log('Volunteer signup submitted successfully:', data);
       goToStep('success');
       onComplete?.();
     } catch (err) {
       const appError = handleSupabaseError(err);
       setError(appError.message);
-      console.error('Volunteer signup submission error:', err);
     } finally {
       setIsLoading(false);
     }
