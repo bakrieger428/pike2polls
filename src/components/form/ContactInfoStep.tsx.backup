@@ -3,6 +3,20 @@
 import { Input, Textarea, Button, Alert } from '@/components/ui';
 import { useState, useEffect, useRef } from 'react';
 
+// Place interface from Google Places API
+interface Place {
+  formatted_address?: string;
+  fetchFields(options: { fields: string[] }): Promise<void>;
+}
+
+// Type for the place select event handler
+type PlaceSelectHandler = (event: { placePrediction: { toPlace: () => Place } }) => void;
+
+// Type for the PlaceAutocompleteElement instance
+interface PlaceAutocompleteElementInstance {
+  element: HTMLInputElement;
+  addEventListener(event: string, handler: PlaceSelectHandler): void;
+}
 
 export interface ContactInfoStepProps {
   initialValues?: {
@@ -42,7 +56,7 @@ export function ContactInfoStep({
   }>({});
 
   const addressInputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<any>(null);
+  const autocompleteRef = useRef<unknown>(null);
 
   // Initialize Google Places Autocomplete
   useEffect(() => {
@@ -52,50 +66,58 @@ export function ContactInfoStep({
       return;
     }
 
-    // Check if Google Maps API is already loaded
-    if ((window as any).google?.maps?.places) {
-      // API already loaded, just initialize autocomplete
-      initializeAutocomplete();
-      return;
-    }
-
-    // Load Google Maps API script with Places library
+    // Load Google Maps API script
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleCallback`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initGoogleCallback`;
     script.async = true;
     script.defer = true;
 
     // Set up callback for when script loads
-    (window as any).initGoogleCallback = () => {
-      initializeAutocomplete();
-    };
-
-    document.head.appendChild(script);
-
-    function initializeAutocomplete() {
+    (window as typeof globalThis & {
+      initGoogleCallback?: () => Promise<void>;
+    }).initGoogleCallback = async () => {
       try {
-        const googleWin = (window as any).google;
+        // Request needed libraries
+        const googleWin = window as typeof globalThis & {
+          google?: {
+            maps: {
+              importLibrary: (library: string) => Promise<unknown>;
+              places?: {
+                PlaceAutocompleteElement: new (options?: Record<string, unknown>) => PlaceAutocompleteElementInstance;
+              };
+            };
+          }
+        };
 
-        if (!googleWin?.maps?.places) {
-          console.error('Google Maps Places library not loaded');
-          return;
+        if (!googleWin.google) {
+          throw new Error('Google Maps API not loaded');
         }
+
+        await googleWin.google.maps.importLibrary('places');
 
         // Check if input element still exists
         if (!addressInputRef.current) {
           return;
         }
 
+        // Access the places library after it's loaded
+        if (!googleWin.google.maps.places) {
+          throw new Error('Google Maps Places library not loaded');
+        }
+
         // Create the PlaceAutocompleteElement
-        const PlaceAutocompleteElement = googleWin.maps.places.PlaceAutocompleteElement;
+        const PlaceAutocompleteElement = googleWin.google.maps.places.PlaceAutocompleteElement;
         const placeAutocomplete = new PlaceAutocompleteElement({});
 
         // Replace the input with the autocomplete element
         if (addressInputRef.current.parentNode) {
           addressInputRef.current.parentNode.replaceChild(placeAutocomplete as unknown as Node, addressInputRef.current);
+          // Update ref to point to the new element
+          placeAutocomplete.element = addressInputRef.current;
+          autocompleteRef.current = placeAutocomplete;
 
           // Add the gmp-placeselect listener
-          placeAutocomplete.addEventListener('gmp-placeselect', async ({ placePrediction }: any) => {
+          placeAutocomplete.addEventListener('gmp-placeselect', async ({ placePrediction }) => {
             const place = placePrediction.toPlace();
             await place.fetchFields({ fields: ['formattedAddress'] });
 
@@ -104,17 +126,19 @@ export function ContactInfoStep({
               setErrors((prev) => ({ ...prev, address: undefined }));
             }
           });
-
-          autocompleteRef.current = placeAutocomplete;
         }
       } catch (error) {
         console.error('Error initializing Google Places autocomplete:', error);
       }
-    }
+    };
+
+    document.head.appendChild(script);
 
     return () => {
       // Cleanup
-      const globalWindow = window as any;
+      const globalWindow = window as typeof globalThis & {
+        initGoogleCallback?: () => Promise<void>;
+      };
       if (globalWindow.initGoogleCallback) {
         delete globalWindow.initGoogleCallback;
       }

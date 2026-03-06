@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Places API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Google Places API Test</h1>
+    <div id="status" class="status info">Loading API key...</div>
+
+    <h2>Test Address Autocomplete</h2>
+    <p>Type an address below. If the API is working, you should see suggestions appear.</p>
+    <input
+        type="text"
+        id="address-input"
+        placeholder="Start typing an address..."
+        style="width: 400px;"
+    >
+
+    <h2>API Key Status</h2>
+    <div id="api-key-info"></div>
+
+    <h2>Troubleshooting Steps</h2>
+    <ol>
+        <li>Check if the API key is displayed above</li>
+        <li>If you see an error below, the API key needs configuration</li>
+        <li>Visit <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
+        <li>Enable the Places API for your project</li>
+        <li>Enable billing on your Google Cloud project</li>
+        <li>Remove any IP or referrer restrictions (for testing)</li>
+    </ol>
+
+    <script>
+        const apiKey = 'AIzaSyCbEkJn7Me81zVD8ZZdBbDgjrs7pO4zgJ4';
+        const statusDiv = document.getElementById('status');
+        const apiKeyInfo = document.getElementById('api-key-info');
+
+        // Display API key info
+        apiKeyInfo.innerHTML = `
+            <p><strong>API Key:</strong> <code>${apiKey}</code></p>
+            <p><strong>Key Length:</strong> ${apiKey.length} characters</p>
+            <p><strong>Last 8 chars:</strong> <code>...${apiKey.slice(-8)}</code></p>
+        `;
+
+        // Load Google Maps API
+        statusDiv.textContent = 'Loading Google Maps API...';
+        statusDiv.className = 'status info';
+
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initGoogleCallback`;
+        script.async = true;
+        script.defer = true;
+
+        window.initGoogleCallback = async () => {
+            try {
+                statusDiv.textContent = 'API loaded successfully! Loading Places library...';
+                statusDiv.className = 'status success';
+
+                // Load Places library
+                await google.maps.importLibrary('places');
+
+                statusDiv.textContent = 'Places API loaded successfully! Testing autocomplete...';
+                statusDiv.className = 'status success';
+
+                // Create autocomplete element
+                const input = document.getElementById('address-input');
+                const autocomplete = new google.maps.places.PlaceAutocompleteElement({});
+
+                // Replace input with autocomplete
+                input.parentNode.replaceChild(autocomplete, input);
+
+                // Add event listener
+                autocomplete.addEventListener('gmp-placeselect', async ({ placePrediction }) => {
+                    const place = placePrediction.toPlace();
+                    await place.fetchFields({ fields: ['formattedAddress'] });
+
+                    if (place.formatted_address) {
+                        alert(`Selected: ${place.formatted_address}`);
+                    }
+                });
+
+                statusDiv.innerHTML = `
+                    <strong>✅ Success!</strong> Google Places API is working correctly.<br>
+                    Start typing an address above to see autocomplete suggestions.
+                `;
+                statusDiv.className = 'status success';
+
+            } catch (error) {
+                console.error('Error:', error);
+                statusDiv.innerHTML = `
+                    <strong>❌ Error:</strong> ${error.message}<br><br>
+                    <strong>Common fixes:</strong><br>
+                    1. Enable the Places API in Google Cloud Console<br>
+                    2. Enable billing on your project<br>
+                    3. Remove API key restrictions (for testing)<br>
+                    4. Make sure the API key is correct
+                `;
+                statusDiv.className = 'status error';
+            }
+        };
+
+        script.onerror = () => {
+            statusDiv.innerHTML = `
+                <strong>❌ Network Error:</strong> Failed to load Google Maps API script.<br>
+                Check your internet connection and API key validity.
+            `;
+            statusDiv.className = 'status error';
+        };
+
+        document.head.appendChild(script);
+    </script>
+</body>
+</html>
