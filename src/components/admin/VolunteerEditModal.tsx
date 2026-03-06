@@ -112,7 +112,7 @@ export function VolunteerEditModal({ volunteer, onClose, onSave }: VolunteerEdit
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card className="max-w-2xl w-full max-h-[85vh] flex flex-col">
+      <Card className="max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden">
         {/* Header - Fixed, doesn't scroll */}
         <div className="p-6 flex-shrink-0">
           <h3 className="text-heading-xl font-semibold text-text-primary mb-2">
@@ -131,221 +131,223 @@ export function VolunteerEditModal({ volunteer, onClose, onSave }: VolunteerEdit
         </div>
 
         {/* Scrollable form content */}
-        <div className="flex-1 overflow-y-auto px-6">
-          <form onSubmit={handleSubmit} className="space-y-6 pb-6">
-            {/* Basic Information */}
-            <div>
-              <h4 className="text-heading-md font-semibold text-text-primary mb-4">
-                Basic Information
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-caption-md font-medium text-text-secondary mb-2">
-                    First Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.first_name}
-                    onChange={(e) => handleChange('first_name', e.target.value)}
-                    className="w-full px-3 py-2 border border-border-dark rounded-md"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-caption-md font-medium text-text-secondary mb-2">
-                    Last Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.last_name}
-                    onChange={(e) => handleChange('last_name', e.target.value)}
-                    className="w-full px-3 py-2 border border-border-dark rounded-md"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-caption-md font-medium text-text-secondary mb-2">
-                    Email *
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleChange('email', e.target.value)}
-                    className="w-full px-3 py-2 border border-border-dark rounded-md"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-caption-md font-medium text-text-secondary mb-2">
-                    Phone *
-                  </label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => handleChange('phone', e.target.value)}
-                    className="w-full px-3 py-2 border border-border-dark rounded-md"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Roles */}
-            <div>
-              <h4 className="text-heading-md font-semibold text-text-primary mb-4">
-                Roles
-              </h4>
-              <div className="space-y-2">
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_driver}
-                    onChange={(e) => handleChange('is_driver', e.target.checked)}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-body-md text-text-secondary">Driver</span>
-                </label>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.is_logistical_support}
-                    onChange={(e) => handleChange('is_logistical_support', e.target.checked)}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-body-md text-text-secondary">Logistical Support</span>
-                </label>
-              </div>
-            </div>
-
-            {/* Driver Information */}
-            {formData.is_driver && (
-              <div className="bg-neutral-50 p-4 rounded-lg">
+        <div className="flex-1 overflow-y-auto min-h-0">
+          <div className="px-6">
+            <form onSubmit={handleSubmit} className="space-y-6 py-6">
+              {/* Basic Information */}
+              <div>
                 <h4 className="text-heading-md font-semibold text-text-primary mb-4">
-                  Driver Information
+                  Basic Information
                 </h4>
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-caption-md font-medium text-text-secondary mb-2">
-                      Vehicle Make & Model
+                      First Name *
                     </label>
                     <input
                       type="text"
-                      value={formData.vehicle_make_model}
-                      onChange={(e) => handleChange('vehicle_make_model', e.target.value)}
-                      placeholder="e.g., Toyota Camry 2020"
+                      value={formData.first_name}
+                      onChange={(e) => handleChange('first_name', e.target.value)}
                       className="w-full px-3 py-2 border border-border-dark rounded-md"
+                      required
                     />
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-caption-md font-medium text-text-secondary mb-2">
-                        Number of Seats
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="8"
-                        value={formData.number_of_seats}
-                        onChange={(e) => handleChange('number_of_seats', e.target.value)}
-                        placeholder="e.g., 4"
-                        className="w-full px-3 py-2 border border-border-dark rounded-md"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-caption-md font-medium text-text-secondary mb-2">
-                        License Plate
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.license_plate}
-                        onChange={(e) => handleChange('license_plate', e.target.value)}
-                        placeholder="e.g., ABC1234"
-                        className="w-full px-3 py-2 border border-border-dark rounded-md"
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-caption-md font-medium text-text-secondary mb-2">
+                      Last Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.last_name}
+                      onChange={(e) => handleChange('last_name', e.target.value)}
+                      className="w-full px-3 py-2 border border-border-dark rounded-md"
+                      required
+                    />
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-caption-md font-medium text-text-secondary mb-2">
-                        Driving Alone Preference
-                      </label>
-                      <select
-                        value={formData.drive_alone_preference}
-                        onChange={(e) => handleChange('drive_alone_preference', e.target.value)}
-                        className="w-full px-3 py-2 border border-border-dark rounded-md"
-                      >
-                        <option value="">Select...</option>
-                        <option value="alone">Alone</option>
-                        <option value="paired">Paired</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-caption-md font-medium text-text-secondary mb-2">
-                        Has Valid Insurance
-                      </label>
-                      <select
-                        value={formData.has_valid_insurance}
-                        onChange={(e) => handleChange('has_valid_insurance', e.target.value)}
-                        className="w-full px-3 py-2 border border-border-dark rounded-md"
-                      >
-                        <option value="">Select...</option>
-                        <option value="true">Yes</option>
-                        <option value="false">No</option>
-                      </select>
-                    </div>
+                  <div>
+                    <label className="block text-caption-md font-medium text-text-secondary mb-2">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleChange('email', e.target.value)}
+                      className="w-full px-3 py-2 border border-border-dark rounded-md"
+                      required
+                    />
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-caption-md font-medium text-text-secondary mb-2">
-                        Driving History Issues
-                      </label>
-                      <select
-                        value={formData.driving_history_issues}
-                        onChange={(e) => handleChange('driving_history_issues', e.target.value)}
-                        className="w-full px-3 py-2 border border-border-dark rounded-md"
-                      >
-                        <option value="">Select...</option>
-                        <option value="no">No</option>
-                        <option value="speeding_tickets_only">Speeding Tickets Only</option>
-                        <option value="yes">Yes</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-caption-md font-medium text-text-secondary mb-2">
-                        Needs Gas Reimbursement
-                      </label>
-                      <select
-                        value={formData.needs_gas_reimbursement}
-                        onChange={(e) => handleChange('needs_gas_reimbursement', e.target.value)}
-                        className="w-full px-3 py-2 border border-border-dark rounded-md"
-                      >
-                        <option value="">Select...</option>
-                        <option value="true">Yes</option>
-                        <option value="false">No</option>
-                      </select>
-                    </div>
+                  <div>
+                    <label className="block text-caption-md font-medium text-text-secondary mb-2">
+                      Phone *
+                    </label>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => handleChange('phone', e.target.value)}
+                      className="w-full px-3 py-2 border border-border-dark rounded-md"
+                      required
+                    />
                   </div>
                 </div>
               </div>
-            )}
 
-            {/* Notes */}
-            <div>
-              <label className="block text-caption-md font-medium text-text-secondary mb-2">
-                Additional Notes
-              </label>
-              <textarea
-                value={formData.notes}
-                onChange={(e) => handleChange('notes', e.target.value)}
-                placeholder="Any additional information..."
-                rows={3}
-                className="w-full px-3 py-2 border border-border-dark rounded-md"
-              />
-            </div>
-          </form>
+              {/* Roles */}
+              <div>
+                <h4 className="text-heading-md font-semibold text-text-primary mb-4">
+                  Roles
+                </h4>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.is_driver}
+                      onChange={(e) => handleChange('is_driver', e.target.checked)}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-body-md text-text-secondary">Driver</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.is_logistical_support}
+                      onChange={(e) => handleChange('is_logistical_support', e.target.checked)}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-body-md text-text-secondary">Logistical Support</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Driver Information */}
+              {formData.is_driver && (
+                <div className="bg-neutral-50 p-4 rounded-lg">
+                  <h4 className="text-heading-md font-semibold text-text-primary mb-4">
+                    Driver Information
+                  </h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-caption-md font-medium text-text-secondary mb-2">
+                        Vehicle Make & Model
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.vehicle_make_model}
+                        onChange={(e) => handleChange('vehicle_make_model', e.target.value)}
+                        placeholder="e.g., Toyota Camry 2020"
+                        className="w-full px-3 py-2 border border-border-dark rounded-md"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-caption-md font-medium text-text-secondary mb-2">
+                          Number of Seats
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="8"
+                          value={formData.number_of_seats}
+                          onChange={(e) => handleChange('number_of_seats', e.target.value)}
+                          placeholder="e.g., 4"
+                          className="w-full px-3 py-2 border border-border-dark rounded-md"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-caption-md font-medium text-text-secondary mb-2">
+                          License Plate
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.license_plate}
+                          onChange={(e) => handleChange('license_plate', e.target.value)}
+                          placeholder="e.g., ABC1234"
+                          className="w-full px-3 py-2 border border-border-dark rounded-md"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-caption-md font-medium text-text-secondary mb-2">
+                          Driving Alone Preference
+                        </label>
+                        <select
+                          value={formData.drive_alone_preference}
+                          onChange={(e) => handleChange('drive_alone_preference', e.target.value)}
+                          className="w-full px-3 py-2 border border-border-dark rounded-md"
+                        >
+                          <option value="">Select...</option>
+                          <option value="alone">Alone</option>
+                          <option value="paired">Paired</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-caption-md font-medium text-text-secondary mb-2">
+                          Has Valid Insurance
+                        </label>
+                        <select
+                          value={formData.has_valid_insurance}
+                          onChange={(e) => handleChange('has_valid_insurance', e.target.value)}
+                          className="w-full px-3 py-2 border border-border-dark rounded-md"
+                        >
+                          <option value="">Select...</option>
+                          <option value="true">Yes</option>
+                          <option value="false">No</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-caption-md font-medium text-text-secondary mb-2">
+                          Driving History Issues
+                        </label>
+                        <select
+                          value={formData.driving_history_issues}
+                          onChange={(e) => handleChange('driving_history_issues', e.target.value)}
+                          className="w-full px-3 py-2 border border-border-dark rounded-md"
+                        >
+                          <option value="">Select...</option>
+                          <option value="no">No</option>
+                          <option value="speeding_tickets_only">Speeding Tickets Only</option>
+                          <option value="yes">Yes</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-caption-md font-medium text-text-secondary mb-2">
+                          Needs Gas Reimbursement
+                        </label>
+                        <select
+                          value={formData.needs_gas_reimbursement}
+                          onChange={(e) => handleChange('needs_gas_reimbursement', e.target.value)}
+                          className="w-full px-3 py-2 border border-border-dark rounded-md"
+                        >
+                          <option value="">Select...</option>
+                          <option value="true">Yes</option>
+                          <option value="false">No</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Notes */}
+              <div>
+                <label className="block text-caption-md font-medium text-text-secondary mb-2">
+                  Additional Notes
+                </label>
+                <textarea
+                  value={formData.notes}
+                  onChange={(e) => handleChange('notes', e.target.value)}
+                  placeholder="Any additional information..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-border-dark rounded-md"
+                />
+              </div>
+            </form>
+          </div>
         </div>
 
         {/* Action buttons - Fixed at bottom, outside scrollable area */}
