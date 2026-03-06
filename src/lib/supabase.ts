@@ -33,12 +33,39 @@ function createSupabaseClient(): SupabaseClient {
     return supabaseInstance;
   }
 
+  // Debug logging - check what's actually loaded
+  console.log('=== Supabase Debug Info ===');
+  console.log('supabaseUrl type:', typeof supabaseUrl);
+  console.log('supabaseUrl value:', supabaseUrl);
+  console.log('supabaseUrl length:', supabaseUrl?.length);
+  console.log('supabaseAnonKey type:', typeof supabaseAnonKey);
+  console.log('supabaseAnonKey length:', supabaseAnonKey?.length);
+  console.log('All env vars:', Object.keys(process.env).filter(k => k.includes('SUPABASE')));
+  console.log('========================');
+
   // Validate environment variables
   if (!supabaseUrl || !supabaseAnonKey) {
+    const missingVars = [];
+    if (!supabaseUrl) missingVars.push('NEXT_PUBLIC_SUPABASE_URL');
+    if (!supabaseAnonKey) missingVars.push('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+    
+    console.error('❌ Missing Supabase environment variables:', missingVars);
     throw new Error(
       'Missing Supabase environment variables. ' +
-      'Please ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.'
+      'Please ensure ' + missingVars.join(' and ') + ' are set in Vercel.'
     );
+  }
+
+  // Validate URL format
+  try {
+    const url = new URL(supabaseUrl);
+    console.log('✅ Valid URL:', url.href);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+      throw new Error('Invalid protocol: ' + url.protocol);
+    }
+  } catch (e) {
+    console.error('❌ Invalid URL format:', supabaseUrl, e);
+    throw new Error('Invalid supabaseUrl: Must be a valid HTTP or HTTPS URL. Got: ' + supabaseUrl);
   }
 
   // Create new Supabase client
