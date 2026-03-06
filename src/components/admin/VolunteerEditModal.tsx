@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, Button, Alert } from '@/components/ui';
+import { Button, Alert } from '@/components/ui';
 import type { Volunteer } from '@/lib/supabase';
 import { supabase, TABLES } from '@/lib/supabase';
 
@@ -112,9 +112,9 @@ export function VolunteerEditModal({ volunteer, onClose, onSave }: VolunteerEdit
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card className="max-w-2xl w-full max-h-[85vh] flex flex-col">
+      <div className="max-w-2xl w-full h-[85vh] flex flex-col bg-white rounded-lg shadow-xl overflow-hidden">
         {/* Header - Fixed, doesn't scroll */}
-        <div className="p-6 flex-shrink-0 border-b border-border-light">
+        <div className="p-6 flex-shrink-0 border-b border-border-light bg-white">
           <h3 className="text-heading-xl font-semibold text-text-primary mb-2">
             Edit Volunteer Information
           </h3>
@@ -370,7 +370,7 @@ export function VolunteerEditModal({ volunteer, onClose, onSave }: VolunteerEdit
             Save Changes
           </Button>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }
