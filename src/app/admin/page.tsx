@@ -6,19 +6,18 @@ import { Button, Card, Alert } from '@/components/ui';
 import { Container } from '@/components/layout';
 import { supabase, TABLES, type Signup, type Volunteer } from '@/lib/supabase';
 import Link from 'next/link';
-import { AdminProtected, VolunteerEditModal, DispatchTab } from '@/components/admin';
+import { AdminProtected, VolunteerEditModal } from '@/components/admin';
 import { format } from 'date-fns';
 
 export const dynamic = 'force-dynamic';
 
 function DashboardContent() {
   const { user, signOut } = useAuth();
-  const dispatchTab = 'dispatch' as const;
   const [signups, setSignups] = useState<Signup[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'signups' | 'volunteers' | 'dispatch'>('signups');
+  const [activeTab, setActiveTab] = useState<'signups' | 'volunteers'>('signups');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: 'signup' | 'volunteer' } | null>(null);
   const [editingVolunteer, setEditingVolunteer] = useState<Volunteer | null>(null);
@@ -406,12 +405,6 @@ function DashboardContent() {
                 }`}
               >
                 Volunteers ({volunteers.length})
-              <button
-                onClick={() => setActiveTab(dispatchTab)}
-                className={{}}
-              >
-                Dispatch
-              </button>
               </button>
             </div>
 
@@ -647,9 +640,6 @@ function DashboardContent() {
                 </div>
               )}
             </>
-          ) : activeTab === dispatchTab ? (
-            <DispatchTab signups={signups} volunteers={volunteers} onRefresh={loadData} />
-          ) : null
           )}
         </Card>
 
