@@ -1,83 +1,17 @@
 'use client';
 
-import { useState, FormEvent, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/hooks/useAuth';
-import { Input, Button, Alert, Card } from '@/components/ui';
+import { Input, Button, Card } from '@/components/ui';
 import { Container } from '@/components/layout';
-import { ErrorBoundary } from '@/components/admin/ErrorBoundary';
 
 export const dynamic = 'force-dynamic';
 
-function AdminLoginForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { signIn, isAuthenticated, isLoading, error, clearError } = useAuth();
-
+export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      const redirectTo = searchParams.get('redirect') || '/admin';
-      router.push(redirectTo);
-    }
-  }, [isAuthenticated, router, searchParams]);
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setFormError(null);
-    clearError();
-
-    // Basic validation
-    if (!email.trim()) {
-      setFormError('Please enter your email address');
-      return;
-    }
-
-    if (!password) {
-      setFormError('Please enter your password');
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const { error: signInError } = await signIn(email, password);
-
-      if (signInError) {
-        // Handle common errors
-        if (signInError.message.includes('Invalid login credentials')) {
-          setFormError('Invalid email or password. Please try again.');
-        } else if (signInError.message.includes('Email not confirmed')) {
-          setFormError('Please confirm your email address before logging in.');
-        } else {
-          setFormError(signInError.message);
-        }
-      }
-      // If successful, the useEffect will handle redirect
-    } catch {
-      setFormError('An unexpected error occurred. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-50">
-        <div className="text-center" role="status" aria-live="polite">
-          <div className="inline-block w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mb-4" />
-          <p className="text-body-md text-text-secondary">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  console.log('AdminLoginPage rendering');
 
   return (
     <div className="min-h-screen bg-neutral-50 py-section flex items-center">
@@ -100,29 +34,17 @@ function AdminLoginForm() {
 
           {/* Login Form Card */}
           <Card>
-            <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-              {/* Error Alert */}
-              {(formError || error) && (
-                <Alert variant="error" role="alert">
-                  {formError || error}
-                </Alert>
-              )}
-
+            <form className="space-y-6" noValidate>
               {/* Email Input */}
               <Input
                 id="email"
                 label="Email Address"
                 type="email"
                 value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (formError) setFormError(null);
-                }}
-                error={formError && !email.trim() ? 'Email is required' : undefined}
+                onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
                 placeholder="admin@pike2thepolls.com"
                 required
-                disabled={isLoading || isSubmitting}
               />
 
               {/* Password Input */}
@@ -131,15 +53,10 @@ function AdminLoginForm() {
                 label="Password"
                 type="password"
                 value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (formError) setFormError(null);
-                }}
-                error={formError && !password ? 'Password is required' : undefined}
+                onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
                 placeholder="••••••••"
                 required
-                disabled={isLoading || isSubmitting}
               />
 
               {/* Submit Button */}
@@ -148,8 +65,6 @@ function AdminLoginForm() {
                 variant="primary"
                 fullWidth
                 size="lg"
-                isLoading={isLoading || isSubmitting}
-                disabled={isLoading || isSubmitting}
               >
                 Sign In
               </Button>
@@ -163,7 +78,7 @@ function AdminLoginForm() {
               <div className="text-center">
                 <Link
                   href="/"
-                  className="text-primary-600 hover:text-primary-700 underline text-body-sm focus-visible:outline-focus-ring focus-visible:outline-offset-2 rounded"
+                  className="text-primary-600 hover:text-primary-700 underline text-body-sm"
                 >
                   ← Back to Home
                 </Link>
@@ -178,7 +93,7 @@ function AdminLoginForm() {
             </p>
             <a
               href="mailto:trustee@pike2thepolls.com"
-              className="text-primary-600 hover:text-primary-700 underline text-body-sm focus-visible:outline-focus-ring focus-visible:outline-offset-2 rounded"
+              className="text-primary-600 hover:text-primary-700 underline text-body-sm"
             >
               Contact System Administrator
             </a>
@@ -186,13 +101,5 @@ function AdminLoginForm() {
         </div>
       </Container>
     </div>
-  );
-}
-
-export default function AdminLoginPage() {
-  return (
-    <ErrorBoundary>
-      <AdminLoginForm />
-    </ErrorBoundary>
   );
 }
