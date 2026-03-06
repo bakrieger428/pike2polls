@@ -94,7 +94,7 @@ export async function groupRidersByProximity(
       );
 
       const group: RiderGroupWithRiders = {
-        id: `group-${Date.now()}-${i}`,
+        id: crypto.randomUUID(),
         voting_date: votingDate,
         preferred_time: preferredTime,
         group_name: generateGroupName(cluster, votingDate, preferredTime, i),
