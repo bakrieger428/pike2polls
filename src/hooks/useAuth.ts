@@ -34,7 +34,7 @@ function isAdminUser(user: User | null): boolean {
 
   // Check for specific admin email domain
   // In production, use custom claims or a separate admin_users table
-  const adminDomains = ['pike2thepolls.com', 'trustee.pike.in.gov'];
+  const adminDomains = ['pike2thepolls.com'];
   const emailDomain = user.email.split('@')[1]?.toLowerCase();
 
   return adminDomains.includes(emailDomain || '');
