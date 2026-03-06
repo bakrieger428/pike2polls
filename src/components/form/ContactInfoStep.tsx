@@ -3,6 +3,21 @@
 import { Input, Textarea, Button, Alert } from '@/components/ui';
 import { useState, useEffect, useRef } from 'react';
 
+// Place interface from Google Places API
+interface Place {
+  formatted_address?: string;
+  fetchFields(options: { fields: string[] }): Promise<void>;
+}
+
+// Type for the place select event handler
+type PlaceSelectHandler = (event: { placePrediction: { toPlace: () => Place } }) => void;
+
+// Type for the PlaceAutocompleteElement instance
+interface PlaceAutocompleteElementInstance {
+  element: HTMLInputElement;
+  addEventListener(event: string, handler: PlaceSelectHandler): void;
+}
+
 export interface ContactInfoStepProps {
   initialValues?: {
     email: string;
@@ -41,8 +56,9 @@ export function ContactInfoStep({
   }>({});
 
   const addressInputRef = useRef<HTMLInputElement>(null);
+  const autocompleteRef = useRef<unknown>(null);
 
-  // Load Google Places API and initialize autocomplete
+  // Initialize Google Places Autocomplete
   useEffect(() => {
     // Only load if we have an API key
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
@@ -50,63 +66,84 @@ export function ContactInfoStep({
       return;
     }
 
-    // Check if Google Maps API is already loaded
-    const googleWindow = window as { google?: { maps?: { places?: unknown } } };
-    const hasGoogleMaps = googleWindow.google && googleWindow.google.maps && 'places' in googleWindow.google.maps;
-    if (hasGoogleMaps) {
-      initAutocomplete();
-      return;
-    }
-
-    // Load Google Places API script
+    // Load Google Maps API script
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGooglePlacesCallback`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initGoogleCallback`;
     script.async = true;
     script.defer = true;
 
     // Set up callback for when script loads
-    (window as { initGooglePlacesCallback?: () => void }).initGooglePlacesCallback = () => {
-      initAutocomplete();
+    (window as typeof globalThis & {
+      initGoogleCallback?: () => Promise<void>;
+    }).initGoogleCallback = async () => {
+      try {
+        // Request needed libraries
+        const googleWin = window as typeof globalThis & {
+          google?: {
+            maps: {
+              importLibrary: (library: string) => Promise<unknown>;
+              places?: {
+                PlaceAutocompleteElement: new (options?: Record<string, unknown>) => PlaceAutocompleteElementInstance;
+              };
+            };
+          }
+        };
+
+        if (!googleWin.google) {
+          throw new Error('Google Maps API not loaded');
+        }
+
+        await googleWin.google.maps.importLibrary('places');
+
+        // Check if input element still exists
+        if (!addressInputRef.current) {
+          return;
+        }
+
+        // Access the places library after it's loaded
+        if (!googleWin.google.maps.places) {
+          throw new Error('Google Maps Places library not loaded');
+        }
+
+        // Create the PlaceAutocompleteElement
+        const PlaceAutocompleteElement = googleWin.google.maps.places.PlaceAutocompleteElement;
+        const placeAutocomplete = new PlaceAutocompleteElement({});
+
+        // Replace the input with the autocomplete element
+        if (addressInputRef.current.parentNode) {
+          addressInputRef.current.parentNode.replaceChild(placeAutocomplete as unknown as Node, addressInputRef.current);
+          // Update ref to point to the new element
+          placeAutocomplete.element = addressInputRef.current;
+          autocompleteRef.current = placeAutocomplete;
+
+          // Add the gmp-placeselect listener
+          placeAutocomplete.addEventListener('gmp-placeselect', async ({ placePrediction }) => {
+            const place = placePrediction.toPlace();
+            await place.fetchFields({ fields: ['formattedAddress'] });
+
+            if (place.formatted_address) {
+              setAddress(place.formatted_address);
+              setErrors((prev) => ({ ...prev, address: undefined }));
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error initializing Google Places autocomplete:', error);
+      }
     };
 
     document.head.appendChild(script);
 
     return () => {
       // Cleanup
-      const globalWindow = window as { initGooglePlacesCallback?: () => void };
-      if (globalWindow.initGooglePlacesCallback) {
-        delete globalWindow.initGooglePlacesCallback;
+      const globalWindow = window as typeof globalThis & {
+        initGoogleCallback?: () => Promise<void>;
+      };
+      if (globalWindow.initGoogleCallback) {
+        delete globalWindow.initGoogleCallback;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const initAutocomplete = () => {
-    if (!addressInputRef.current) return;
-
-    const googleWin = window as { google?: { maps?: { places?: { Autocomplete?: new (input: HTMLInputElement, options?: Record<string, unknown>) => { addListener: (event: string, handler: () => void) => void; getPlace: () => { formatted_address?: string } } } } } };
-    if (!googleWin.google?.maps?.places?.Autocomplete) {
-      return;
-    }
-
-    const Autocomplete = googleWin.google.maps.places.Autocomplete;
-    const autocomplete = new Autocomplete(
-      addressInputRef.current,
-      {
-        types: ['address'],
-        componentRestrictions: { country: 'us' },
-        fields: ['formatted_address', 'address_components'],
-      }
-    );
-
-    autocomplete.addListener('place_changed', () => {
-      const place = autocomplete.getPlace();
-      if (place.formatted_address) {
-        setAddress(place.formatted_address);
-        setErrors((prev) => ({ ...prev, address: undefined }));
-      }
-    });
-  };
 
   const validate = (): boolean => {
     const newErrors: { email?: string; phone?: string; address?: string } = {};
@@ -147,8 +184,8 @@ export function ContactInfoStep({
     if (errors.phone) setErrors({ ...errors, phone: undefined });
   };
 
-  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAddress(e.target.value);
+  const handleAddressChange = (value: string) => {
+    setAddress(value);
     if (errors.address) setErrors({ ...errors, address: undefined });
   };
 
@@ -220,13 +257,13 @@ export function ContactInfoStep({
         <Input
           id="address"
           label="Pickup Address"
-          inputRef={addressInputRef as React.RefObject<HTMLInputElement>}
+          inputRef={addressInputRef}
           value={address}
-          onChange={handleAddressChange}
+          onChange={(e) => handleAddressChange(e.target.value)}
           error={errors.address}
           autoComplete="street-address"
-          placeholder={hasGooglePlacesApiKey ? "Start typing your address..." : "123 Main St, Indianapolis, IN 46268"}
-          helperText={hasGooglePlacesApiKey ? "Start typing to see address suggestions." : "Enter the address where you would like to be picked up."}
+          placeholder={hasGooglePlacesApiKey ? "Start typing to search for your address..." : "123 Main St, Indianapolis, IN 46268"}
+          helperText={hasGooglePlacesApiKey ? "Type your address to see suggestions." : "Enter the address where you would like to be picked up."}
           required
         />
         {!hasGooglePlacesApiKey && (
