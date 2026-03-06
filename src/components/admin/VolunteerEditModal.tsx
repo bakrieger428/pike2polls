@@ -88,9 +88,9 @@ export function VolunteerEditModal({ volunteer, onClose, onSave }: VolunteerEdit
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <Card className="max-w-2xl w-full p-6 my-8">
-        <div className="mb-6">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <Card className="max-w-2xl w-full max-h-[80vh] flex flex-col p-6">
+        <div className="mb-6 flex-shrink-0">
           <h3 className="text-heading-xl font-semibold text-text-primary mb-2">
             Edit Volunteer Information
           </h3>
@@ -100,12 +100,14 @@ export function VolunteerEditModal({ volunteer, onClose, onSave }: VolunteerEdit
         </div>
 
         {error && (
-          <Alert variant="error" className="mb-6" role="alert">
-            {error}
-          </Alert>
+          <div className="mb-6 flex-shrink-0">
+            <Alert variant="error" role="alert">
+              {error}
+            </Alert>
+          </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 overflow-y-auto flex-1 pr-2">
           {/* Basic Information */}
           <div>
             <h4 className="text-heading-md font-semibold text-text-primary mb-4">
@@ -320,7 +322,7 @@ export function VolunteerEditModal({ volunteer, onClose, onSave }: VolunteerEdit
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 justify-end pt-4 border-t border-border-light">
+          <div className="flex gap-3 justify-end pt-4 border-t border-border-light flex-shrink-0">
             <Button
               type="button"
               variant="outline"
