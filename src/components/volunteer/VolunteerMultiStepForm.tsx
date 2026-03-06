@@ -286,10 +286,10 @@ export function VolunteerMultiStepForm({ onComplete }: VolunteerMultiStepFormPro
               <p className="text-body-md text-text-secondary">
                 Feel free to contact us at{' '}
                 <a
-                  href="mailto:trustee@pike2thepolls.com"
+                  href="mailto:support@pike2thepolls.com"
                   className="text-primary-600 underline hover:text-primary-700 font-medium"
                 >
-                  trustee@pike2thepolls.com
+                  support@pike2thepolls.com
                 </a>
               </p>
             </div>
