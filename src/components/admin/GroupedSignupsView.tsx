@@ -33,6 +33,7 @@ export function GroupedSignupsView({ signups, statusFilter = 'all' }: GroupedSig
   const [error, setError] = useState<string | null>(null);
 
   // Load groups when signups change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     loadGroups();
   }, [signups]);

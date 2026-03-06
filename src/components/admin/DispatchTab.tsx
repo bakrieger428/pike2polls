@@ -56,6 +56,7 @@ export function DispatchTab({ signups, volunteers, onRefresh }: DispatchTabProps
   const [viewingManifestGroupId, setViewingManifestGroupId] = useState<string | null>(null);
 
   // Load groups when signups change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     loadGroups();
   }, [signups]);

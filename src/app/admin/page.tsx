@@ -6,18 +6,19 @@ import { Button, Card, Alert } from '@/components/ui';
 import { Container } from '@/components/layout';
 import { supabase, TABLES, type Signup, type Volunteer } from '@/lib/supabase';
 import Link from 'next/link';
-import { AdminProtected, VolunteerEditModal } from '@/components/admin';
+import { AdminProtected, VolunteerEditModal, DispatchTab } from '@/components/admin';
 import { format } from 'date-fns';
 
 export const dynamic = 'force-dynamic';
 
 function DashboardContent() {
   const { user, signOut } = useAuth();
+  const dispatchTab = 'dispatch' as const;
   const [signups, setSignups] = useState<Signup[]>([]);
   const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'signups' | 'volunteers'>('signups');
+  const [activeTab, setActiveTab] = useState<'signups' | 'volunteers' | 'dispatch'>('signups');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: 'signup' | 'volunteer' } | null>(null);
   const [editingVolunteer, setEditingVolunteer] = useState<Volunteer | null>(null);
@@ -406,6 +407,16 @@ function DashboardContent() {
               >
                 Volunteers ({volunteers.length})
               </button>
+              <button
+                onClick={() => setActiveTab(dispatchTab)}
+                className={`px-4 py-2 rounded-md font-medium transition-colors ${
+                  activeTab === dispatchTab
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-neutral-100 text-text-secondary hover:bg-neutral-200'
+                }`}
+              >
+                Dispatch
+              </button>
             </div>
 
             <div className="flex gap-2 w-full sm:w-auto">
@@ -544,7 +555,7 @@ function DashboardContent() {
                 </div>
               )}
             </>
-          ) : (
+          ) : activeTab === 'volunteers' ? (
             <>
               {filteredVolunteers.length === 0 ? (
                 <div className="text-center py-12">
@@ -640,7 +651,10 @@ function DashboardContent() {
                 </div>
               )}
             </>
-          )}
+          ) : activeTab === dispatchTab ? (
+            <DispatchTab signups={signups} volunteers={volunteers} onRefresh={loadData} />
+          ) : null}
+
         </Card>
 
         {/* Quick Actions */}
