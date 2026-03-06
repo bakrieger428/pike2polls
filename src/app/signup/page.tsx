@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function SignupPage() {
   return (
-    <main id="main-content" className="py-section bg-neutral-50 min-h-screen">
+    <div className="py-section bg-neutral-50 min-h-screen">
       <Container size="md">
         {/* Page Header */}
         <div className="text-center mb-8">
@@ -53,6 +53,6 @@ export default function SignupPage() {
           </Link>
         </div>
       </Container>
-    </main>
+    </div>
   );
 }

@@ -67,7 +67,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <main id="main-content" className="min-h-screen bg-neutral-50 py-section flex items-center">
+    <div className="min-h-screen bg-neutral-50 py-section flex items-center">
       <Container size="sm">
         <div className="max-w-md mx-auto w-full">
           {/* Header */}
@@ -172,6 +172,6 @@ export default function AdminLoginPage() {
           </div>
         </div>
       </Container>
-    </main>
+    </div>
   );
 }

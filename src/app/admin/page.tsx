@@ -22,7 +22,7 @@ export default function AdminDashboardPage() {
   };
 
   return (
-    <main id="main-content" className="min-h-screen bg-neutral-50 py-section">
+    <div className="min-h-screen bg-neutral-50 py-section">
       <Container>
         {/* Dashboard Header */}
         <div className="mb-8">
@@ -173,6 +173,6 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </Container>
-    </main>
+    </div>
   );
 }
