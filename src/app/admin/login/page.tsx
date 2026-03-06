@@ -1,94 +1,187 @@
-import { Metadata } from 'next';
-import Link from 'next/link';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Admin Login | Pike2ThePolls',
-  robots: 'noindex, nofollow',
-};
+import { useState, FormEvent, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
+import { Input, Button, Alert, Card } from '@/components/ui';
+import { Container } from '@/components/layout';
+
+export const dynamic = 'force-dynamic';
 
 export default function AdminLoginPage() {
-  return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f9fafb', padding: '4rem 0' }}>
-      <div style={{ maxWidth: '28rem', width: '100%', padding: '0 1rem' }}>
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <Link href="/">
-            <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2563eb', marginBottom: '1.5rem', display: 'inline-block' }}>
-              Pike2ThePolls
-            </h1>
-          </Link>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: '600', color: '#111827', marginBottom: '0.5rem' }}>
-            Admin Login
-          </h2>
-          <p style={{ fontSize: '1rem', color: '#6b7280' }}>
-            Sign in to access the admin dashboard
-          </p>
-        </div>
+  const router = useRouter();
+  const { signIn, isAuthenticated, isLoading, error, clearError } = useAuth();
 
-        <div style={{ backgroundColor: 'white', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', padding: '1.5rem', border: '1px solid #e5e7eb' }}>
-          <form style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div>
-              <label htmlFor="email" style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#4b5563', marginBottom: '0.5rem' }}>
-                Email Address
-              </label>
-              <input
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/admin');
+    }
+  }, [isAuthenticated, router]);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setFormError(null);
+    clearError();
+
+    // Basic validation
+    if (!email.trim()) {
+      setFormError('Please enter your email address');
+      return;
+    }
+
+    if (!password) {
+      setFormError('Please enter your password');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const { error: signInError } = await signIn(email, password);
+
+      if (signInError) {
+        // Handle common errors
+        if (signInError.message.includes('Invalid login credentials')) {
+          setFormError('Invalid email or password. Please try again.');
+        } else if (signInError.message.includes('Email not confirmed')) {
+          setFormError('Please confirm your email address before logging in.');
+        } else {
+          setFormError(signInError.message);
+        }
+      }
+      // If successful, the useEffect will handle redirect
+    } catch {
+      setFormError('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50">
+        <div className="text-center" role="status" aria-live="polite">
+          <div className="inline-block w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mb-4" />
+          <p className="text-body-md text-text-secondary">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-neutral-50 py-section flex items-center">
+      <Container size="sm">
+        <div className="max-w-md mx-auto w-full">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <Link href="/" className="inline-block mb-6">
+              <h1 className="text-display-xl font-bold text-primary-600">
+                Pike2ThePolls
+              </h1>
+            </Link>
+            <h2 className="text-heading-xl font-semibold text-text-primary mb-2">
+              Admin Login
+            </h2>
+            <p className="text-body-md text-text-secondary">
+              Sign in to access the admin dashboard
+            </p>
+          </div>
+
+          {/* Login Form Card */}
+          <Card>
+            <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+              {/* Error Alert */}
+              {(formError || error) && (
+                <Alert variant="error" role="alert">
+                  {formError || error}
+                </Alert>
+              )}
+
+              {/* Email Input */}
+              <Input
                 id="email"
+                label="Email Address"
                 type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (formError) setFormError(null);
+                }}
+                error={formError && !email.trim() ? 'Email is required' : undefined}
                 autoComplete="email"
                 placeholder="admin@pike2thepolls.com"
                 required
-                style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.375rem', border: '1px solid #374151', fontSize: '1rem' }}
+                disabled={isLoading || isSubmitting}
               />
-            </div>
 
-            <div>
-              <label htmlFor="password" style={{ display: 'block', fontSize: '0.875rem', fontWeight: '500', color: '#4b5563', marginBottom: '0.5rem' }}>
-                Password
-              </label>
-              <input
+              {/* Password Input */}
+              <Input
                 id="password"
+                label="Password"
                 type="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (formError) setFormError(null);
+                }}
+                error={formError && !password ? 'Password is required' : undefined}
                 autoComplete="current-password"
                 placeholder="••••••••"
                 required
-                style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '0.375rem', border: '1px solid #374151', fontSize: '1rem' }}
+                disabled={isLoading || isSubmitting}
               />
-            </div>
 
-            <button
-              type="submit"
-              style={{ width: '100%', padding: '0.75rem 1.5rem', backgroundColor: '#2563eb', color: 'white', fontWeight: '500', borderRadius: '0.375rem', border: 'none', fontSize: '1rem', cursor: 'pointer', minHeight: '44px' }}
-            >
-              Sign In
-            </button>
-          </form>
-
-          <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <p style={{ fontSize: '0.75rem', color: '#9ca3af', textAlign: 'center' }}>
-              For security, this login is restricted to authorized Pike Township Trustee Office staff.
-            </p>
-            <div style={{ textAlign: 'center' }}>
-              <Link
-                href="/"
-                style={{ color: '#2563eb', textDecoration: 'underline', fontSize: '0.875rem' }}
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                variant="primary"
+                fullWidth
+                size="lg"
+                isLoading={isLoading || isSubmitting}
+                disabled={isLoading || isSubmitting}
               >
-                ← Back to Home
-              </Link>
+                Sign In
+              </Button>
+            </form>
+
+            {/* Footer Links */}
+            <div className="mt-6 pt-6 border-t border-border-light space-y-3">
+              <p className="text-caption-sm text-text-tertiary text-center">
+                For security, this login is restricted to authorized Pike Township Trustee Office staff.
+              </p>
+              <div className="text-center">
+                <Link
+                  href="/"
+                  className="text-primary-600 hover:text-primary-700 underline text-body-sm focus-visible:outline-focus-ring focus-visible:outline-offset-2 rounded"
+                >
+                  ← Back to Home
+                </Link>
+              </div>
             </div>
+          </Card>
+
+          {/* Help Section */}
+          <div className="mt-6 text-center">
+            <p className="text-body-sm text-text-tertiary mb-2">
+              Need help accessing your account?
+            </p>
+            <a
+              href="mailto:support@pike2thepolls.com"
+              className="text-primary-600 hover:text-primary-700 underline text-body-sm focus-visible:outline-focus-ring focus-visible:outline-offset-2 rounded"
+            >
+              Contact System Administrator
+            </a>
           </div>
         </div>
-
-        <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
-          <p style={{ fontSize: '0.875rem', color: '#9ca3af', marginBottom: '0.5rem' }}>
-            Need help accessing your account?
-          </p>
-          <a
-            href="mailto:trustee@pike2thepolls.com"
-            style={{ color: '#2563eb', textDecoration: 'underline', fontSize: '0.875rem' }}
-          >
-            Contact System Administrator
-          </a>
-        </div>
-      </div>
+      </Container>
     </div>
   );
 }
