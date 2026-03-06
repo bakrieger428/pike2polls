@@ -3,21 +3,6 @@
 import { Input, Textarea, Button, Alert } from '@/components/ui';
 import { useState, useEffect, useRef } from 'react';
 
-// Place interface from Google Places API
-interface Place {
-  formatted_address?: string;
-  fetchFields(options: { fields: string[] }): Promise<void>;
-}
-
-// Type for the place select event handler
-type PlaceSelectHandler = (event: { placePrediction: { toPlace: () => Place } }) => void;
-
-// Type for the PlaceAutocompleteElement instance
-interface PlaceAutocompleteElementInstance {
-  element: HTMLInputElement;
-  addEventListener(event: string, handler: PlaceSelectHandler): void;
-}
-
 export interface ContactInfoStepProps {
   initialValues?: {
     email: string;
@@ -56,89 +41,110 @@ export function ContactInfoStep({
   }>({});
 
   const addressInputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<unknown>(null);
+  const autocompleteRef = useRef<any>(null);
 
   // Initialize Google Places Autocomplete
   useEffect(() => {
     // Only load if we have an API key
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
+    let apiKey = process.env.NEXT_PUBLIC_GOOGLE_PLACES_API_KEY;
+
+    // Strip any quotes that might be in the environment variable (common in Vercel)
+    if (apiKey) {
+      apiKey = apiKey.replace(/^["']|["']$/g, '');
+    }
+
     if (!apiKey || !addressInputRef.current) {
       return;
     }
 
-    // Load Google Maps API script
+    console.log('🔍 Initializing Google Places autocomplete...');
+    console.log('API Key (first 10 chars):', apiKey.substring(0, 10) + '...');
+
+    // Check if Google Maps API is already loaded
+    if ((window as any).google?.maps?.places) {
+      console.log('✅ Google Maps API already loaded');
+      initializeAutocomplete();
+      return;
+    }
+
+    // Load Google Maps API script with Places library
+    console.log('🔍 Loading Google Maps API script...');
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initGoogleCallback`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=initGoogleCallback`;
     script.async = true;
     script.defer = true;
 
+    // Add error handling for script loading
+    script.onerror = () => {
+      console.error('❌ Failed to load Google Maps API script');
+    };
+
     // Set up callback for when script loads
-    (window as typeof globalThis & {
-      initGoogleCallback?: () => Promise<void>;
-    }).initGoogleCallback = async () => {
-      try {
-        // Request needed libraries
-        const googleWin = window as typeof globalThis & {
-          google?: {
-            maps: {
-              importLibrary: (library: string) => Promise<unknown>;
-              places?: {
-                PlaceAutocompleteElement: new (options?: Record<string, unknown>) => PlaceAutocompleteElementInstance;
-              };
-            };
-          }
-        };
-
-        if (!googleWin.google) {
-          throw new Error('Google Maps API not loaded');
-        }
-
-        await googleWin.google.maps.importLibrary('places');
-
-        // Check if input element still exists
-        if (!addressInputRef.current) {
-          return;
-        }
-
-        // Access the places library after it's loaded
-        if (!googleWin.google.maps.places) {
-          throw new Error('Google Maps Places library not loaded');
-        }
-
-        // Create the PlaceAutocompleteElement
-        const PlaceAutocompleteElement = googleWin.google.maps.places.PlaceAutocompleteElement;
-        const placeAutocomplete = new PlaceAutocompleteElement({});
-
-        // Replace the input with the autocomplete element
-        if (addressInputRef.current.parentNode) {
-          addressInputRef.current.parentNode.replaceChild(placeAutocomplete as unknown as Node, addressInputRef.current);
-          // Update ref to point to the new element
-          placeAutocomplete.element = addressInputRef.current;
-          autocompleteRef.current = placeAutocomplete;
-
-          // Add the gmp-placeselect listener
-          placeAutocomplete.addEventListener('gmp-placeselect', async ({ placePrediction }) => {
-            const place = placePrediction.toPlace();
-            await place.fetchFields({ fields: ['formattedAddress'] });
-
-            if (place.formatted_address) {
-              setAddress(place.formatted_address);
-              setErrors((prev) => ({ ...prev, address: undefined }));
-            }
-          });
-        }
-      } catch (error) {
-        console.error('Error initializing Google Places autocomplete:', error);
-      }
+    (window as any).initGoogleCallback = () => {
+      console.log('✅ Google Maps API script loaded, callback fired');
+      initializeAutocomplete();
     };
 
     document.head.appendChild(script);
+    console.log('✅ Script added to document head');
+
+    function initializeAutocomplete() {
+      try {
+        console.log('🔍 Initializing autocomplete functionality...');
+        const googleWin = (window as any).google;
+
+        if (!googleWin?.maps?.places) {
+          console.error('❌ Google Maps Places library not loaded');
+          return;
+        }
+
+        console.log('✅ Google Maps Places library loaded');
+
+        // Check if input element still exists
+        if (!addressInputRef.current) {
+          console.error('❌ Address input element not found');
+          return;
+        }
+
+        console.log('✅ Address input element found:', addressInputRef.current);
+
+        // Use the traditional Autocomplete class instead of PlaceAutocompleteElement
+        const autocomplete = new googleWin.maps.places.Autocomplete(
+          addressInputRef.current,
+          {
+            types: ['address'],
+            fields: ['formatted_address', 'address_components']
+          }
+        );
+
+        console.log('✅ Autocomplete instance created');
+
+        // Add listener for place selection
+        autocomplete.addListener('place_changed', () => {
+          console.log('🎯 Place selected!');
+          const place = autocomplete.getPlace();
+          console.log('Place object:', place);
+
+          if (place.formatted_address) {
+            console.log('✅ Updating address state to:', place.formatted_address);
+            // Update React state
+            setAddress(place.formatted_address);
+            setErrors((prev) => ({ ...prev, address: undefined }));
+          } else {
+            console.error('❌ No formatted_address in place object');
+          }
+        });
+
+        autocompleteRef.current = autocomplete;
+        console.log('✅ Autocomplete initialization complete');
+      } catch (error) {
+        console.error('❌ Error initializing Google Places autocomplete:', error);
+      }
+    }
 
     return () => {
       // Cleanup
-      const globalWindow = window as typeof globalThis & {
-        initGoogleCallback?: () => Promise<void>;
-      };
+      const globalWindow = window as any;
       if (globalWindow.initGoogleCallback) {
         delete globalWindow.initGoogleCallback;
       }
@@ -184,19 +190,22 @@ export function ContactInfoStep({
     if (errors.phone) setErrors({ ...errors, phone: undefined });
   };
 
-  const handleAddressChange = (value: string) => {
-    setAddress(value);
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('Address input changed:', e.target.value);
+    setAddress(e.target.value);
     if (errors.address) setErrors({ ...errors, address: undefined });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Debug logging
-    console.log("Address value:", address);
-    console.log("Address trimmed:", address.trim());
-    console.log("Input element value:", addressInputRef.current?.value);
-    
+    console.log("📋 Form submission - Address value:", address);
+    console.log("📋 Form submission - Address trimmed:", address.trim());
+    console.log("📋 Form submission - Input element value:", addressInputRef.current?.value);
+    console.log("📋 Form submission - Address state type:", typeof address);
+    console.log("📋 Form submission - Address length:", address.length);
+
     if (validate()) {
       onNext({
         email: email.trim().toLowerCase(),
@@ -265,7 +274,7 @@ export function ContactInfoStep({
           label="Pickup Address"
           inputRef={addressInputRef}
           value={address}
-          onChange={(e) => handleAddressChange(e.target.value)}
+          onChange={handleAddressChange}
           error={errors.address}
           autoComplete="street-address"
           placeholder={hasGooglePlacesApiKey ? "Start typing to search for your address..." : "123 Main St, Indianapolis, IN 46268"}
