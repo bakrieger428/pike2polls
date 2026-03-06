@@ -6,10 +6,11 @@ import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import { Input, Button, Alert, Card } from '@/components/ui';
 import { Container } from '@/components/layout';
+import { ErrorBoundary } from '@/components/admin/ErrorBoundary';
 
 export const dynamic = 'force-dynamic';
 
-export default function AdminLoginPage() {
+function AdminLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { signIn, isAuthenticated, isLoading, error, clearError } = useAuth();
@@ -65,6 +66,18 @@ export default function AdminLoginPage() {
       setIsSubmitting(false);
     }
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50">
+        <div className="text-center" role="status" aria-live="polite">
+          <div className="inline-block w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mb-4" />
+          <p className="text-body-md text-text-secondary">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-neutral-50 py-section flex items-center">
@@ -173,5 +186,13 @@ export default function AdminLoginPage() {
         </div>
       </Container>
     </div>
+  );
+}
+
+export default function AdminLoginPage() {
+  return (
+    <ErrorBoundary>
+      <AdminLoginForm />
+    </ErrorBoundary>
   );
 }
