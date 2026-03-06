@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
  * DispatchTab Component
  *
@@ -42,7 +43,7 @@ interface DispatchTabProps {
   onRefresh: () => void;
 }
 
-export function DispatchTab({ signups, _volunteers, onRefresh }: DispatchTabProps) {
+export function DispatchTab({ signups, volunteers, onRefresh }: DispatchTabProps) {
   const [groups, setGroups] = useState<RiderGroupWithRiders[]>([]);
   const [filteredGroups, setFilteredGroups] = useState<RiderGroupWithRiders[]>([]);
   const [driverAssignments, setDriverAssignments] = useState<Record<string, DriverAssignment>>({});
