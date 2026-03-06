@@ -42,7 +42,7 @@ PHASE*.md
 NEXT_STEPS.md
 *STATUS.md
 *REVIEW.md
-
+VERCEL_ENV_SETUP.md
 /net-commander
 
 .vercel
