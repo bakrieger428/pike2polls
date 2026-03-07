@@ -132,6 +132,12 @@ export function DispatchTab({ signups, volunteers, onRefresh }: DispatchTabProps
     onRefresh();
   }
 
+  function handleRemoveAssignment(groupId: string) {
+    // Refresh driver assignments after removal
+    loadDriverAssignments();
+    onRefresh();
+  }
+
   const votingDates = getVotingDates(groups);
   const preferredTimes = getPreferredTimes(groups);
   const assignedGroupsCount = Object.keys(driverAssignments).length;
@@ -247,9 +253,11 @@ export function DispatchTab({ signups, volunteers, onRefresh }: DispatchTabProps
             <RiderGroupCard
               key={group.id}
               group={group}
+              volunteers={volunteers}
               driverAssignment={driverAssignments[group.id]}
               onAssignDriver={handleAssignDriver}
               onViewManifest={handleViewManifest}
+              onRemoveAssignment={handleRemoveAssignment}
             />
           ))}
         </div>

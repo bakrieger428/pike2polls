@@ -20,21 +20,68 @@ import React from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { type RiderGroupWithRiders } from '@/lib/grouping';
-import { type DriverAssignment } from '@/lib/supabase';
+import { type DriverAssignment, type Volunteer } from '@/lib/supabase';
 
 interface RiderGroupCardProps {
   group: RiderGroupWithRiders;
+  volunteers: Volunteer[];
   driverAssignment?: DriverAssignment | null;
   onAssignDriver: (groupId: string) => void;
   onViewManifest: (groupId: string) => void;
+  onRemoveAssignment?: (groupId: string) => void;
 }
 
 export function RiderGroupCard({
   group,
+  volunteers,
   driverAssignment,
   onAssignDriver,
   onViewManifest,
+  onRemoveAssignment,
 }: RiderGroupCardProps) {
+  // Find the assigned driver from volunteers array
+  const assignedDriver = driverAssignment
+    ? volunteers.find((v) => v.id === driverAssignment.volunteer_id)
+    : null;
+
+  // Debug logging
+  console.log('RiderGroupCard:', {
+    groupId: group.id,
+    hasDriverAssignment: !!driverAssignment,
+    volunteerIdInAssignment: driverAssignment?.volunteer_id,
+    volunteersCount: volunteers.length,
+    volunteerIds: volunteers.map(v => v.id),
+    assignedDriverFound: !!assignedDriver,
+    assignedDriverName: assignedDriver ? `${assignedDriver.first_name} ${assignedDriver.last_name}` : 'none',
+  });
+
+
+  async function handleRemoveAssignment() {
+    if (!driverAssignment) return;
+    
+    if (!confirm('Are you sure you want to remove this driver assignment?')) {
+      return;
+    }
+
+    try {
+      const { supabase, TABLES } = await import('@/lib/supabase');
+      const { error } = await supabase
+        .from(TABLES.DRIVER_ASSIGNMENTS)
+        .delete()
+        .eq('id', driverAssignment.id);
+
+      if (error) throw error;
+
+      if (onRemoveAssignment && typeof onRemoveAssignment === 'function') {
+        onRemoveAssignment(group.id);
+      }
+    } catch (err) {
+      console.error('Failed to remove assignment:', err);
+      alert('Failed to remove assignment. Please try again.');
+    }
+  }
+
+
   return (
     <Card className="p-6 mb-4">
       {/* Group Header */}
@@ -64,11 +111,11 @@ export function RiderGroupCard({
       </div>
 
       {/* Assigned Driver Info */}
-      {driverAssignment && (
+      {driverAssignment && assignedDriver && (
         <div className="mb-4 p-3 bg-success-50 border border-success-200 rounded-md">
           <div className="text-body-sm text-text-secondary">
             <span className="font-medium text-text-primary">Assigned Driver: </span>
-            {driverAssignment.volunteer_id}
+            {assignedDriver.first_name} {assignedDriver.last_name}
           </div>
           {driverAssignment.notes && (
             <div className="text-body-sm text-text-secondary mt-1">
@@ -76,6 +123,16 @@ export function RiderGroupCard({
               {driverAssignment.notes}
             </div>
           )}
+          <div className="mt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRemoveAssignment}
+              className="text-error-600 border-error-200 hover:bg-error-50"
+            >
+              Remove Assignment
+            </Button>
+          </div>
         </div>
       )}
 

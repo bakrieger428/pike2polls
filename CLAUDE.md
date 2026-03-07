@@ -197,8 +197,12 @@ The admin dashboard uses a protected route pattern with authentication:
 Required in `.env.local`:
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_urlNEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_token_here
 ```
+
+**Note**: Mapbox token is required for the rider dispatch feature (geocoding).
 
 Never commit `.env.local` to git.
 
@@ -253,12 +257,20 @@ Admin access is restricted to specific email domains:
 
 ## Critical Files
 
+**Core Application:**
 -   `src/lib/supabase.ts` - Supabase client, don't break auth
 -   `src/app/signup/page.tsx` - Main form entry point
 -   `src/lib/validation.ts` - All form validation logic
 -   `.env.local` - Environment secrets (never commit)
 -   `vercel.json` - Production deployment config
 -   `src/components/form/MultiStepForm.tsx` - Form state machine
+
+**Dispatch Feature:**
+-   `src/lib/grouping.ts` - Persistent rider grouping algorithm
+-   `src/lib/mapbox.ts` - Mapbox geocoding and distance calculations
+-   `src/components/admin/DispatchTab.tsx` - Main dispatch interface
+-   `src/components/admin/RiderGroupCard.tsx` - Group display with driver info
+-   `supabase-migrations/add-dispatch-tables.sql` - Database schema
 
 ## Testing Checklist
 
@@ -290,12 +302,18 @@ Use these tools:
 
 ## Project Status
 
-**Current Phase**: Initial setup - project structure ready for implementation
+**Current Phase**: ✅ **CORE FEATURES COMPLETE** - Production-ready
+
+**Completed Features**:
+- ✅ Welcome page and basic layout
+- ✅ Conversational multi-step signup form
+- ✅ FAQ page with privacy policy
+- ✅ Admin authentication with domain-based access control
+- ✅ Admin dashboard with full CRUD for signups and volunteers
+- ✅ Volunteer driver information tracking
+- ✅ **Rider Dispatch Feature** - Persistent grouping, driver assignment, route manifests
 
 **Next Steps**:
-
-1.  Initialize Next.js project with TypeScript
-2.  Set up Supabase project and configure environment
-3.  Implement welcome page and basic layout
-4.  Build conversational form component
-5.  Set up database schema and RLS policies
+- Add Mapbox token to Vercel environment variables
+- Deploy to production
+- Monitor Mapbox API usage (100K free requests/month)
