@@ -289,3 +289,186 @@ export function isWithinRadius(
   const distance = calculateDistance(lat1, lon1, lat2, lon2);
   return distance <= radiusMiles;
 }
+
+// ============================================================================
+// MAPBOX DIRECTIONS API INTEGRATION
+// ============================================================================
+
+/**
+ * Mapbox Directions API result
+ */
+export interface DirectionsResult {
+  routes: Array<{
+    distance: number; // Meters
+    duration: number; // Seconds
+    geometry?: string;
+    legs: Array<{
+      distance: number; // Meters
+      duration: number; // Seconds
+      summary: string;
+      steps?: Array<{
+        distance: number;
+        duration: number;
+        instruction: string;
+      }>;
+    }>;
+  }>;
+  code: string;
+  uuid: string;
+}
+
+/**
+ * Waypoint for routing
+ */
+export interface RoutingWaypoint {
+  longitude: number;
+  latitude: number;
+  name?: string;
+}
+
+/**
+ * Get optimized driving directions between multiple waypoints
+ *
+ * Uses Mapbox Directions API to calculate:
+ * - Optimal route through all waypoints
+ * - Actual driving distances
+ * - Estimated travel times (with or without traffic)
+ *
+ * @param waypoints - Array of waypoints in order (or any order for optimization)
+ * @param options - Optional parameters
+ * @returns Promise with directions result
+ *
+ * @example
+ * ```ts
+ * const result = await getDrivingDirections([
+ *   { longitude: -86.1581, latitude: 39.7684 },
+ *   { longitude: -86.1459, latitude: 39.7776 },
+ *   { longitude: -86.1500, latitude: 39.7700 },
+ * ]);
+ * console.log(`Distance: ${result.routes[0].distance} meters`);
+ * console.log(`Duration: ${result.routes[0].duration} seconds`);
+ * ```
+ */
+export async function getDrivingDirections(
+  waypoints: RoutingWaypoint[],
+  options?: {
+    profile?: 'driving' | 'driving-traffic' | 'walking' | 'cycling';
+    overview?: 'full' | 'simplified' | 'false';
+    steps?: boolean;
+  }
+): Promise<DirectionsResult> {
+  // Validate Mapbox token
+  validateMapboxToken();
+
+  if (waypoints.length < 2) {
+    throw new Error('At least 2 waypoints required for routing');
+  }
+
+  // Build coordinates string for Mapbox API
+  // Format: longitude,latitude;longitude,latitude;...
+  const coords = waypoints
+    .map(wp => `${wp.longitude},${wp.latitude}`)
+    .join(';');
+
+  const profile = options?.profile || 'driving';
+  const overview = options?.overview || 'full';
+  const steps = options?.steps ? 'true' : 'false';
+
+  const url = `${MAPBOX_API_URL.replace('/geocoding', '').replace('/mapbox.places', '')}/directions/v5/mapbox/${profile}/${coords}?` +
+    `access_token=${MAPBOX_TOKEN}&` +
+    `overview=${overview}&` +
+    `steps=${steps}&` +
+    `geometries=geojson`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Mapbox Directions API error: ${response.status} ${response.statusText}`);
+  }
+
+  const data: DirectionsResult = await response.json();
+
+  if (data.code !== 'Ok') {
+    throw new Error(`Directions API returned error: ${data.code}`);
+  }
+
+  if (!data.routes || data.routes.length === 0) {
+    throw new Error('No route found');
+  }
+
+  return data;
+}
+
+/**
+ * Calculate route distance and duration
+ *
+ * Convenience function that extracts just the distance and duration
+ * from the Directions API response.
+ *
+ * @param waypoints - Array of waypoints
+ * @param options - Optional parameters
+ * @returns Promise with distance (miles) and duration (minutes)
+ */
+export async function getRouteDistanceAndDuration(
+  waypoints: RoutingWaypoint[],
+  options?: {
+    profile?: 'driving' | 'driving-traffic' | 'walking' | 'cycling';
+  }
+): Promise<{
+  distanceMiles: number;
+  durationMinutes: number;
+  distanceMeters: number;
+  durationSeconds: number;
+}> {
+  const result = await getDrivingDirections(waypoints, options);
+  const route = result.routes[0];
+
+  return {
+    distanceMeters: route.distance,
+    distanceMiles: route.distance * 0.000621371, // Convert to miles
+    durationSeconds: route.duration,
+    durationMinutes: Math.round(route.duration / 60), // Convert to minutes
+  };
+}
+
+/**
+ * Get turn-by-turn driving directions
+ *
+ * Returns detailed step-by-step directions including:
+ * - Distance for each step
+ * - Duration for each step
+ * - Text instruction for each maneuver
+ *
+ * @param waypoints - Array of waypoints
+ * @returns Promise with array of direction steps
+ */
+export async function getTurnByTurnDirections(
+  waypoints: RoutingWaypoint[]
+): Promise<Array<{
+  instruction: string;
+  distanceMiles: number;
+  durationMinutes: number;
+}>> {
+  const result = await getDrivingDirections(waypoints, { steps: true });
+  const route = result.routes[0];
+
+  const steps: Array<{
+    instruction: string;
+    distanceMiles: number;
+    durationMinutes: number;
+  }> = [];
+
+  for (const leg of route.legs) {
+    if (leg.steps) {
+      for (const step of leg.steps) {
+        steps.push({
+          instruction: step.instruction,
+          distanceMiles: step.distance * 0.000621371,
+          durationMinutes: Math.round(step.duration / 60),
+        });
+      }
+    }
+  }
+
+  return steps;
+}

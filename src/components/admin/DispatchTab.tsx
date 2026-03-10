@@ -1,18 +1,22 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /**
- * DispatchTab Component
+ * DispatchTab Component (Refactored)
  *
  * Main dispatch interface for:
- * - Viewing rider groups by voting date/time
- * - Filtering groups
- * - Assigning drivers to groups
- * - Viewing route manifests
+ * - Viewing rider groups by voting day → time slot → address
+ * - Assigning drivers to location groups
+ * - Viewing route manifests with time-based schedules
+ *
+ * NEW hierarchical organization:
+ * - DaySection (collapsible, one per voting day)
+ *   ├── TimeSlotGroup (one per time slot)
+ *     └── LocationGroupCard (riders at same address)
  *
  * Features:
- * - Filters for voting date and time slot
- * - Geocoding and grouping on demand
- * - Loading states
- * - Error handling
+ * - Hierarchical organization (no more filters)
+ * - Collapsible day sections (collapsed by default)
+ * - Location-based grouping (same address = same group)
+ * - Time-based route manifests with voting locations
+ * - Enhanced driver assignment
  *
  * WCAG 2.1 AA compliant with:
  * - Semantic HTML
@@ -25,16 +29,11 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { RiderGroupCard } from './RiderGroupCard';
+import { DaySection } from './DaySection';
 import { DriverAssigner } from './DriverAssigner';
-import { RouteManifest } from './RouteManifest';
-import {
-  groupRidersByProximity,
-  filterGroups,
-  getVotingDates,
-  getPreferredTimes,
-  type RiderGroupWithRiders,
-} from '@/lib/grouping';
+import { DriverRouteManifest } from './DriverRouteManifest';
+import { groupRidersByLocation, type DaySection as DaySectionType, type LocationGroup } from '@/lib/grouping-location';
+import { calculateDriverSchedule, getVotingLocationCoords } from '@/lib/routing';
 import { supabase, TABLES, type Signup, type Volunteer, type DriverAssignment } from '@/lib/supabase';
 
 interface DispatchTabProps {
@@ -44,42 +43,48 @@ interface DispatchTabProps {
 }
 
 export function DispatchTab({ signups, volunteers, onRefresh }: DispatchTabProps) {
-  const [groups, setGroups] = useState<RiderGroupWithRiders[]>([]);
-  const [filteredGroups, setFilteredGroups] = useState<RiderGroupWithRiders[]>([]);
+  const [daySections, setDaySections] = useState<DaySectionType[]>([]);
+  const [locationGroupsMap, setLocationGroupsMap] = useState<Record<string, LocationGroup>>({});
   const [driverAssignments, setDriverAssignments] = useState<Record<string, DriverAssignment>>({});
-  const [selectedVotingDate, setSelectedVotingDate] = useState<string>('all');
-  const [selectedTime, setSelectedTime] = useState<string>('all');
   const [isLoadingGroups, setIsLoadingGroups] = useState(false);
-  const [_isLoadingAssignments, setIsLoadingAssignments] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [assigningGroupId, setAssigningGroupId] = useState<string | null>(null);
-  const [viewingManifestGroupId, setViewingManifestGroupId] = useState<string | null>(null);
+  const [viewingDriverManifest, setViewingDriverManifest] = useState<{
+    driverId: string;
+    votingDate: string;
+  } | null>(null);
+  const [driverSchedule, setDriverSchedule] = useState<any>(null);
 
-  // Load groups when signups change
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Load location groups when signups change
   useEffect(() => {
-    loadGroups();
+    loadLocationGroups();
   }, [signups]);
 
   // Load driver assignments
   useEffect(() => {
     loadDriverAssignments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Filter groups when filters or groups change
-  useEffect(() => {
-    const filtered = filterGroups(groups, selectedVotingDate, selectedTime);
-    setFilteredGroups(filtered);
-  }, [groups, selectedVotingDate, selectedTime]);
-
-  async function loadGroups() {
+  async function loadLocationGroups() {
     setIsLoadingGroups(true);
     setError(null);
 
     try {
-      // Group riders by proximity
-      const riderGroups = await groupRidersByProximity(signups, 2);
-      setGroups(riderGroups);
+      // Group riders by location (voting day → time slot → address)
+      const sections = await groupRidersByLocation(signups);
+      setDaySections(sections);
+
+      // Build a map of all location groups for easy lookup
+      const groupsMap: Record<string, LocationGroup> = {};
+      for (const section of sections) {
+        for (const timeSlot of section.timeSlots) {
+          for (const group of timeSlot.locationGroups) {
+            groupsMap[group.id] = group;
+          }
+        }
+      }
+      setLocationGroupsMap(groupsMap);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load groups');
       console.error('Error loading groups:', err);
@@ -89,8 +94,6 @@ export function DispatchTab({ signups, volunteers, onRefresh }: DispatchTabProps
   }
 
   async function loadDriverAssignments() {
-    setIsLoadingAssignments(true);
-
     try {
       const { data, error } = await supabase
         .from(TABLES.DRIVER_ASSIGNMENTS)
@@ -107,20 +110,37 @@ export function DispatchTab({ signups, volunteers, onRefresh }: DispatchTabProps
       setDriverAssignments(assignmentMap);
     } catch (err) {
       console.error('Error loading driver assignments:', err);
-    } finally {
-      setIsLoadingAssignments(false);
     }
   }
 
-  function handleAssignDriver(groupId: string) {
-    const group = groups.find((g) => g.id === groupId);
-    if (!group) return;
-
-    setAssigningGroupId(groupId);
+  function handleAssignDriver(_groupId: string) {
+    setAssigningGroupId(_groupId);
   }
 
-  function handleViewManifest(groupId: string) {
-    setViewingManifestGroupId(groupId);
+  async function handleViewDriverManifest(driverId: string, votingDate: string) {
+    setViewingDriverManifest({ driverId, votingDate });
+
+    try {
+      // Get all location groups for this driver on this voting day
+      const allGroupsForDriver = Object.values(locationGroupsMap).filter(
+        group => group.votingDate === votingDate && driverAssignments[group.id]?.volunteer_id === driverId
+      );
+
+      // Get voting location coordinates
+      const votingLocationCoords = await getVotingLocationCoords(votingDate);
+
+      // Calculate driver schedule
+      const schedule = await calculateDriverSchedule(
+        driverId,
+        votingDate,
+        allGroupsForDriver,
+        votingLocationCoords
+      );
+
+      setDriverSchedule(schedule);
+    } catch (err) {
+      console.error('Error loading driver schedule:', err);
+    }
   }
 
   function handleDriverAssignerClose() {
@@ -132,66 +152,42 @@ export function DispatchTab({ signups, volunteers, onRefresh }: DispatchTabProps
     onRefresh();
   }
 
-  function handleRemoveAssignment(groupId: string) {
+  function handleRemoveAssignment(_groupId: string) {
     // Refresh driver assignments after removal
     loadDriverAssignments();
     onRefresh();
   }
 
-  const votingDates = getVotingDates(groups);
-  const preferredTimes = getPreferredTimes(groups);
+  function handleDriverManifestClose() {
+    setViewingDriverManifest(null);
+    setDriverSchedule(null);
+  }
+
+  // Calculate overall statistics
+  const totalGroups = Object.values(locationGroupsMap).length;
+  const totalRiders = Object.values(locationGroupsMap).reduce((sum, group) => sum + group.riderCount, 0);
   const assignedGroupsCount = Object.keys(driverAssignments).length;
 
   return (
     <div>
-      {/* Filters */}
+      {/* Stats Card */}
       <Card className="mb-6 p-4">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <div className="flex-grow">
-            <label htmlFor="voting-date-filter" className="block text-body-sm font-medium text-text-primary mb-1">
-              Voting Date
-            </label>
-            <select
-              id="voting-date-filter"
-              value={selectedVotingDate}
-              onChange={(e) => setSelectedVotingDate(e.target.value)}
-              className="w-full px-3 py-2 border border-border-dark rounded-md text-body-md"
-            >
-              <option value="all">All Dates</option>
-              {votingDates.map((date) => (
-                <option key={date} value={date}>
-                  {formatVotingDate(date)}
-                </option>
-              ))}
-            </select>
+            <h2 className="text-heading-md font-semibold text-text-primary mb-1">
+              Rider Dispatch
+            </h2>
+            <p className="text-body-sm text-text-secondary">
+              Organize riders by voting day, time, and location
+            </p>
           </div>
 
-          <div className="flex-grow">
-            <label htmlFor="time-filter" className="block text-body-sm font-medium text-text-primary mb-1">
-              Preferred Time
-            </label>
-            <select
-              id="time-filter"
-              value={selectedTime}
-              onChange={(e) => setSelectedTime(e.target.value)}
-              className="w-full px-3 py-2 border border-border-dark rounded-md text-body-md"
-            >
-              <option value="all">All Times</option>
-              {preferredTimes.map((time) => (
-                <option key={time} value={time}>
-                  {time}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex items-end gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={loadGroups}
+              onClick={loadLocationGroups}
               isLoading={isLoadingGroups}
-              className="w-full sm:w-auto"
             >
               Regroup
             </Button>
@@ -201,8 +197,16 @@ export function DispatchTab({ signups, volunteers, onRefresh }: DispatchTabProps
         {/* Stats */}
         <div className="mt-4 pt-4 border-t border-border-light flex flex-wrap gap-4 text-body-sm text-text-secondary">
           <div>
+            <span className="font-medium text-text-primary">Total Days: </span>
+            {daySections.length}
+          </div>
+          <div>
+            <span className="font-medium text-text-primary">Total Riders: </span>
+            {totalRiders}
+          </div>
+          <div>
             <span className="font-medium text-text-primary">Total Groups: </span>
-            {groups.length}
+            {totalGroups}
           </div>
           <div>
             <span className="font-medium text-text-primary">Assigned: </span>
@@ -210,7 +214,7 @@ export function DispatchTab({ signups, volunteers, onRefresh }: DispatchTabProps
           </div>
           <div>
             <span className="font-medium text-text-primary">Unassigned: </span>
-            {groups.length - assignedGroupsCount}
+            {totalGroups - assignedGroupsCount}
           </div>
         </div>
       </Card>
@@ -219,7 +223,7 @@ export function DispatchTab({ signups, volunteers, onRefresh }: DispatchTabProps
       {error && (
         <div className="mb-6 p-4 bg-error-50 border border-error-200 rounded-md" role="alert">
           <p className="text-body-sm text-error-800 mb-2">{error}</p>
-          <Button variant="outline" size="sm" onClick={loadGroups}>
+          <Button variant="outline" size="sm" onClick={loadLocationGroups}>
             Retry
           </Button>
         </div>
@@ -231,32 +235,29 @@ export function DispatchTab({ signups, volunteers, onRefresh }: DispatchTabProps
           <div className="inline-block w-12 h-12 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mb-4" />
           <p className="text-body-md text-text-secondary">Creating rider groups...</p>
           <p className="text-body-sm text-text-tertiary mt-2">
-            This may take a moment as we geocode addresses and calculate distances
+            This may take a moment as we geocode addresses and organize by location
           </p>
         </Card>
-      ) : filteredGroups.length === 0 ? (
+      ) : daySections.length === 0 ? (
         <Card className="p-12 text-center">
           <p className="text-body-md text-text-secondary mb-4">
-            {groups.length === 0
-              ? 'No rider groups yet. Make sure signups have addresses to create groups.'
-              : 'No groups match the current filter.'}
+            No rider groups yet.
           </p>
-          {signups.length === 0 && (
-            <p className="text-body-sm text-text-tertiary">
-              Add ride signups with addresses to get started.
-            </p>
-          )}
+          <p className="text-body-sm text-text-tertiary">
+            Add ride signups with addresses to get started.
+          </p>
         </Card>
       ) : (
         <div>
-          {filteredGroups.map((group) => (
-            <RiderGroupCard
-              key={group.id}
-              group={group}
+          {/* Day Sections */}
+          {daySections.map((day) => (
+            <DaySection
+              key={day.votingDate}
+              day={day}
               volunteers={volunteers}
-              driverAssignment={driverAssignments[group.id]}
+              driverAssignments={driverAssignments}
               onAssignDriver={handleAssignDriver}
-              onViewManifest={handleViewManifest}
+              onViewDriverManifest={handleViewDriverManifest}
               onRemoveAssignment={handleRemoveAssignment}
             />
           ))}
@@ -268,10 +269,10 @@ export function DispatchTab({ signups, volunteers, onRefresh }: DispatchTabProps
         <DriverAssigner
           groupId={assigningGroupId}
           votingDate={
-            groups.find((g) => g.id === assigningGroupId)?.voting_date || ''
+            locationGroupsMap[assigningGroupId]?.votingDate || ''
           }
           preferredTime={
-            groups.find((g) => g.id === assigningGroupId)?.preferred_time || ''
+            locationGroupsMap[assigningGroupId]?.preferredTime || ''
           }
           currentAssignment={driverAssignments[assigningGroupId]}
           onClose={handleDriverAssignerClose}
@@ -279,30 +280,17 @@ export function DispatchTab({ signups, volunteers, onRefresh }: DispatchTabProps
         />
       )}
 
-      {/* Route Manifest Modal */}
-      {viewingManifestGroupId && (
-        <RouteManifest
-          group={groups.find((g) => g.id === viewingManifestGroupId)!}
-          driverAssignment={driverAssignments[viewingManifestGroupId]}
-          onClose={() => setViewingManifestGroupId(null)}
+      {/* Driver Route Manifest Modal */}
+      {viewingDriverManifest && driverSchedule && (
+        <DriverRouteManifest
+          schedule={driverSchedule}
+          driverAssignment={driverAssignments[Object.keys(locationGroupsMap).find(
+            groupId => driverAssignments[groupId]?.volunteer_id === viewingDriverManifest.driverId && locationGroupsMap[groupId].votingDate === viewingDriverManifest.votingDate
+          )!]!}
+          volunteer={volunteers.find(v => v.id === viewingDriverManifest.driverId)!}
+          onClose={handleDriverManifestClose}
         />
       )}
     </div>
   );
-}
-
-/**
- * Format voting date for display
- */
-function formatVotingDate(votingDate: string): string {
-  switch (votingDate) {
-    case 'early-voting-date-1':
-      return 'Early Voting Day 1';
-    case 'early-voting-date-2':
-      return 'Early Voting Day 2';
-    case 'election-day':
-      return 'Election Day';
-    default:
-      return votingDate;
-  }
 }
