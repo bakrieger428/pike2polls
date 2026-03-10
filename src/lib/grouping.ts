@@ -257,11 +257,8 @@ export async function groupRidersByProximity(
 
   const existingGroups = await loadGroupsFromDatabase(signupIds);
   if (existingGroups) {
-    console.log('Loaded', existingGroups.length, 'existing groups from database');
     return existingGroups;
   }
-
-  console.log('Creating new groups...');
 
   const timeSlots = groupByTimeSlot(signupsWithAddresses);
   const allGroups: RiderGroupWithRiders[] = [];
@@ -293,7 +290,6 @@ export async function groupRidersByProximity(
   }
 
   await saveGroupsToDatabase(allGroups);
-  console.log('Saved', allGroups.length, 'groups to database');
 
   return allGroups;
 }

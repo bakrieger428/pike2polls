@@ -44,17 +44,6 @@ export function RiderGroupCard({
     ? volunteers.find((v) => v.id === driverAssignment.volunteer_id)
     : null;
 
-  // Debug logging
-  console.log('RiderGroupCard:', {
-    groupId: group.id,
-    hasDriverAssignment: !!driverAssignment,
-    volunteerIdInAssignment: driverAssignment?.volunteer_id,
-    volunteersCount: volunteers.length,
-    volunteerIds: volunteers.map(v => v.id),
-    assignedDriverFound: !!assignedDriver,
-    assignedDriverName: assignedDriver ? `${assignedDriver.first_name} ${assignedDriver.last_name}` : 'none',
-  });
-
 
   async function handleRemoveAssignment() {
     if (!driverAssignment) return;

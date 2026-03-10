@@ -117,7 +117,7 @@ export default function AdminLoginPage() {
                 }}
                 error={formError && !email.trim() ? 'Email is required' : undefined}
                 autoComplete="email"
-                placeholder="admin@pike2thepolls.com"
+                placeholder="your@email.com"
                 required
                 disabled={isLoading || isSubmitting}
               />
