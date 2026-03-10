@@ -100,7 +100,7 @@ export function Footer({
   organization = 'Pike2ThePolls',
   contact,
   sections = defaultSections,
-  campaignDisclosure = 'Paid for by L416 PAC and authorized by the Committee to Elect Annette Johnson for Pike Township Trustee.',
+  campaignDisclosure = 'Supported by L416 PAC & Authorized by the Committee to elect Annette M. Johnson for Pike Township Trustee',
   children,
 }: FooterProps) {
   return (
