@@ -1,0 +1,54 @@
+feat: add email notifications for rider and volunteer signups
+
+Implements automated email notifications using Supabase Edge Functions and Resend API.
+
+## Features
+- Sends formatted HTML emails on new rider and volunteer signups
+- Responsive email templates with complete signup information
+- Database webhook triggers for automatic notification
+- Comprehensive error handling and logging
+- Free tier support (3,000 emails/month via Resend)
+
+## Implementation
+- Supabase Edge Function (Deno runtime)
+- PostgreSQL triggers using pg_net extension
+- Resend API for email delivery
+- Type-safe TypeScript implementation
+
+## Files Added
+- supabase/functions/send-signup-notification/index.ts
+- supabase/functions/send-signup-notification/deno.json
+- supabase/functions/send-signup-notification/README.md
+- supabase-migrations/add-email-notification-triggers.sql
+- scripts/setup-email-notifications.sh (Unix/macOS)
+- scripts/setup-email-notifications.bat (Windows)
+- EMAIL_NOTIFICATIONS_IMPLEMENTATION.md
+- QUICK_START_EMAIL_NOTIFICATIONS.md
+
+## Files Modified
+- tsconfig.json (excluded supabase/functions from type checking)
+- .env.example (added RESEND_API_KEY documentation)
+
+## Setup Required
+1. Create Resend account and get API key
+2. Run setup script (manual or automated)
+3. Deploy Edge Function to Supabase
+4. Run database migration for webhook triggers
+5. Add RESEND_API_KEY to Vercel environment variables
+
+## Security
+- RESEND_API_KEY is server-side only (not exposed to client)
+- Email recipient hardcoded to support@pike2thepolls.com
+- All data transmitted over HTTPS
+
+## Cost
+- Free tier: 3,000 emails/month
+- Expected usage: ~50-200 emails total
+- No credit card required for free tier
+
+## Documentation
+See QUICK_START_EMAIL_NOTIFICATIONS.md for 5-minute setup guide
+See EMAIL_NOTIFICATIONS_IMPLEMENTATION.md for full documentation
+See supabase/functions/send-signup-notification/README.md for detailed guide
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>

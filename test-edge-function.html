@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Edge Function</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        .result {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        h2 {
+            margin-top: 30px;
+        }
+        a {
+            color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Email Notification Edge Function</h1>
+    <p>Use this page to test if the Edge Function is working without submitting actual signup forms.</p>
+
+    <h2>Step 1: Test Rider Signup Email</h2>
+    <button onclick="testSignup()">🚗 Test Rider Signup Email</button>
+    <div id="signup-result" class="result">Click button to test...</div>
+
+    <h2>Step 2: Test Volunteer Signup Email</h2>
+    <button onclick="testVolunteer()">🙋 Test Volunteer Signup Email</button>
+    <div id="volunteer-result" class="result">Click button to test...</div>
+
+    <h2>Step 3: Check Logs</h2>
+    <ul>
+        <li><strong>Edge Function Logs:</strong> <a href="https://supabase.com/dashboard/project/vvzzorscnvoggeanfxtn/functions/send-signup-notification/logs" target="_blank">View Logs</a></li>
+        <li><strong>Resend Dashboard:</strong> <a href="https://resend.com/dashboard/logs" target="_blank">View Email Logs</a></li>
+    </ul>
+
+    <script>
+        const EDGE_FUNCTION_URL = 'https://vvzzorscnvoggeanfxtn.supabase.co/functions/v1/send-signup-notification';
+        const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ2enpvcnNjbnZvZ2dlYW5meHRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyMDI2MzgsImV4cCI6MjA4Nzc3ODYzOH0.O2VmLqDN860DxcXNqCsTUkoputpyv6WD6hExN466GuI';
+
+        async function testSignup() {
+            const resultDiv = document.getElementById('signup-result');
+            resultDiv.textContent = 'Sending...';
+
+            const payload = {
+                type: 'INSERT',
+                table: 'signups',
+                schema: 'public',
+                record: {
+                    id: 'test-' + Date.now(),
+                    created_at: new Date().toISOString(),
+                    first_name: 'Test',
+                    last_name: 'Rider',
+                    email: 'test@example.com',
+                    phone: '(317) 555-0123',
+                    is_pike_resident: true,
+                    is_registered_voter: true,
+                    voting_date: 'election-day',
+                    preferred_time: '9:00 AM',
+                    address: '123 Main St, Indianapolis, IN 46220',
+                    liability_waiver_agreed: true,
+                    disclaimer_agreed: true,
+                    status: 'pending'
+                },
+                old_record: null
+            };
+
+            try {
+                resultDiv.textContent = 'Calling Edge Function...';
+
+                const response = await fetch(EDGE_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${ANON_KEY}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                resultDiv.innerHTML = `<strong>Status:</strong> ${response.status} ${response.statusText}\n<strong>Response:</strong> ${JSON.stringify(result, null, 2)}`;
+                resultDiv.style.background = response.ok ? '#dcfce7' : '#fecaca';
+
+                console.log('Signup test result:', result);
+            } catch (error) {
+                resultDiv.innerHTML = `<strong style="color: red;">Error:</strong> ${error.message}`;
+                resultDiv.style.background = '#fecaca';
+                console.error('Signup test error:', error);
+            }
+        }
+
+        async function testVolunteer() {
+            const resultDiv = document.getElementById('volunteer-result');
+            resultDiv.textContent = 'Sending...';
+
+            const payload = {
+                type: 'INSERT',
+                table: 'volunteers',
+                schema: 'public',
+                record: {
+                    id: 'test-' + Date.now(),
+                    created_at: new Date().toISOString(),
+                    first_name: 'Test',
+                    last_name: 'Volunteer',
+                    email: 'test@example.com',
+                    phone: '(317) 555-0456',
+                    is_driver: true,
+                    is_logistical_support: false,
+                    may_2: true,
+                    may_3: true,
+                    may_5: true,
+                    all_days: true,
+                    time_slots: [],
+                    status: 'pending'
+                },
+                old_record: null
+            };
+
+            try {
+                resultDiv.textContent = 'Calling Edge Function...';
+
+                const response = await fetch(EDGE_FUNCTION_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${ANON_KEY}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                resultDiv.innerHTML = `<strong>Status:</strong> ${response.status} ${response.statusText}\n<strong>Response:</strong> ${JSON.stringify(result, null, 2)}`;
+                resultDiv.style.background = response.ok ? '#dcfce7' : '#fecaca';
+
+                console.log('Volunteer test result:', result);
+            } catch (error) {
+                resultDiv.innerHTML = `<strong style="color: red;">Error:</strong> ${error.message}`;
+                resultDiv.style.background = '#fecaca';
+                console.error('Volunteer test error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
