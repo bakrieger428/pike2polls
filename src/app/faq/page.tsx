@@ -50,6 +50,15 @@ const faqItems: FAQItem[] = [
     ),
   },
   {
+    id: 'vote-requirement',
+    question: 'Do I have to vote for a specific candidate to be eligible for a ride to the polls?',
+    answer: (
+      <p className="text-body-md text-text-secondary">
+        <strong>No.</strong> The Pike2ThePolls Program is not affiliated with any Pike Township Government entity. Although Annette Johnson is a candidate for re-election as Pike Township Trustee, your transportation to the polls is not conditioned on your vote for any specific candidate. You will not be asked about your voting preference by any member of the Pike2ThePolls Program. As Trustee, Annette Johnson believes that your right to vote and access to the ballot should be protected and your voice heard, regardless of your choice of candidate.
+      </p>
+    ),
+  },
+  {
     id: 'pickup-location',
     question: 'Where will I be picked up?',
     answer: (
