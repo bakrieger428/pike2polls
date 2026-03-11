@@ -12,17 +12,6 @@ import type { NextRequest } from 'next/server';
 import { checkRateLimit, getClientIP, getRateLimitTypeFromPath } from '@/lib/rate-limit';
 
 /**
- * Routes that should be excluded from middleware processing
- */
-const EXCLUDED_PATHS = [
-  '/_next',
-  '/api',
-  '/static',
-  '/favicon.ico',
-  '/robots.txt',
-];
-
-/**
  * Configure which paths the middleware should run on
  *
  * Matcher format:
