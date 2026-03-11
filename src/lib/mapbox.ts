@@ -12,6 +12,75 @@ import { getSupabaseClient, TABLES } from './supabase';
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 const MAPBOX_API_URL = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
 
+// ============================================================================
+// REQUEST THROTTLING
+// ============================================================================
+
+/**
+ * Simple request queue to limit concurrent Mapbox API calls
+ * Prevents exhausting the 100K monthly quota with burst requests
+ */
+class RequestQueue {
+  private queue: Array<() => Promise<any>> = [];
+  private activeCount = 0;
+  private maxConcurrent: number;
+
+  constructor(maxConcurrent: number = 5) {
+    this.maxConcurrent = maxConcurrent;
+  }
+
+  /**
+   * Add a request to the queue
+   * Returns a promise that resolves when the request completes
+   */
+  async add<T>(request: () => Promise<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+      this.queue.push(async () => {
+        try {
+          const result = await request();
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      });
+
+      this.process();
+    });
+  }
+
+  /**
+   * Process the queue, running up to maxConcurrent requests at once
+   */
+  private async process(): Promise<void> {
+    if (this.activeCount >= this.maxConcurrent || this.queue.length === 0) {
+      return;
+    }
+
+    const request = this.queue.shift();
+    if (!request) return;
+
+    this.activeCount++;
+
+    try {
+      await request();
+    } finally {
+      this.activeCount--;
+      this.process(); // Process next item
+    }
+  }
+
+  /**
+   * Clear all pending requests (useful for cleanup)
+   */
+  clear(): void {
+    this.queue = [];
+  }
+}
+
+// Global request queue for Mapbox API calls
+// Limit to 5 concurrent requests to prevent burst abuse
+const mapboxRequestQueue = new RequestQueue(5);
+
 /**
  * Geocoding result interface
  */
@@ -83,49 +152,54 @@ export async function geocodeAddress(address: string): Promise<GeocodeResult> {
     };
   }
 
-  // Call Mapbox Geocoding API
+  // Call Mapbox Geocoding API (with throttling)
   try {
-    // Encode address for URL
-    const encodedAddress = encodeURIComponent(normalizedAddress);
-    const url = `${MAPBOX_API_URL}/${encodedAddress}.json?access_token=${MAPBOX_TOKEN}&country=US&limit=1`;
+    // Use request queue to limit concurrent API calls
+    const result = await mapboxRequestQueue.add(async () => {
+      // Encode address for URL
+      const encodedAddress = encodeURIComponent(normalizedAddress);
+      const url = `${MAPBOX_API_URL}/${encodedAddress}.json?access_token=${MAPBOX_TOKEN}&country=US&limit=1`;
 
-    const response = await fetch(url);
+      const response = await fetch(url);
 
-    if (!response.ok) {
-      throw new Error(`Mapbox API error: ${response.status} ${response.statusText}`);
-    }
+      if (!response.ok) {
+        throw new Error(`Mapbox API error: ${response.status} ${response.statusText}`);
+      }
 
-    const data = await response.json();
+      const data = await response.json();
 
-    // Check if we got results
-    if (!data.features || data.features.length === 0) {
-      throw new Error(`Address not found: ${normalizedAddress}`);
-    }
+      // Check if we got results
+      if (!data.features || data.features.length === 0) {
+        throw new Error(`Address not found: ${normalizedAddress}`);
+      }
 
-    const feature = data.features[0];
-    const [longitude, latitude] = feature.center;
-    const formattedAddress = feature.place_name || normalizedAddress;
+      const feature = data.features[0];
+      const [longitude, latitude] = feature.center;
+      const formattedAddress = feature.place_name || normalizedAddress;
 
-    // Save to cache
-    const { error: insertError } = await supabase
-      .from(TABLES.GEOCODED_ADDRESSES)
-      .insert({
-        address: normalizedAddress,
-        latitude: String(latitude),
-        longitude: String(longitude),
-        formatted_address: formattedAddress,
-      });
+      // Save to cache
+      const { error: insertError } = await supabase
+        .from(TABLES.GEOCODED_ADDRESSES)
+        .insert({
+          address: normalizedAddress,
+          latitude: String(latitude),
+          longitude: String(longitude),
+          formatted_address: formattedAddress,
+        });
 
-    if (insertError) {
-      console.error('Error caching geocoded address:', insertError);
-      // Don't throw - we still got the result
-    }
+      if (insertError) {
+        console.error('Error caching geocoded address:', insertError);
+        // Don't throw - we still got the result
+      }
 
-    return {
-      latitude,
-      longitude,
-      formattedAddress,
-    };
+      return {
+        latitude,
+        longitude,
+        formattedAddress,
+      };
+    });
+
+    return result;
   } catch (error) {
     if (error instanceof Error) {
       throw error;
@@ -380,13 +454,17 @@ export async function getDrivingDirections(
     `steps=${steps}&` +
     `geometries=geojson`;
 
-  const response = await fetch(url);
+  // Use request queue to limit concurrent API calls
+  const data = await mapboxRequestQueue.add(async () => {
+    const response = await fetch(url);
 
-  if (!response.ok) {
-    throw new Error(`Mapbox Directions API error: ${response.status} ${response.statusText}`);
-  }
+    if (!response.ok) {
+      throw new Error(`Mapbox Directions API error: ${response.status} ${response.statusText}`);
+    }
 
-  const data: DirectionsResult = await response.json();
+    const result: DirectionsResult = await response.json();
+    return result;
+  });
 
   if (data.code !== 'Ok') {
     throw new Error(`Directions API returned error: ${data.code}`);

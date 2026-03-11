@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { Alert, Button } from '@/components/ui';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 export interface ResidentCheckStepProps {
   value: boolean | null;
@@ -13,6 +15,17 @@ export interface ResidentCheckStepProps {
  * Confirms the user is a Pike Township resident
  */
 export function ResidentCheckStep({ value, onChange, onNext }: ResidentCheckStepProps) {
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileError, setTurnstileError] = useState<string | null>(null);
+
+  const handleContinue = () => {
+    if (!turnstileToken) {
+      setTurnstileError('Please complete the security verification');
+      return;
+    }
+    setTurnstileError(null);
+    onNext();
+  };
 
   return (
     <div className="space-y-6" role="group" aria-labelledby="resident-check-heading">
@@ -95,11 +108,71 @@ export function ResidentCheckStep({ value, onChange, onNext }: ResidentCheckStep
       )}
 
       {value === true && (
-        <div className="flex justify-end">
-          <Button onClick={onNext} size="lg">
-            Continue
-          </Button>
-        </div>
+        <>
+          {/* Cloudflare Turnstile Bot Protection */}
+          <div className="space-y-2">
+            <p className="text-body-sm text-text-secondary">
+              Please complete the security verification below to continue.
+            </p>
+
+            {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? (
+              <div className="min-h-[65px]">
+                <Turnstile
+                  siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                  onSuccess={(token) => {
+                    setTurnstileToken(token);
+                    setTurnstileError(null);
+                  }}
+                  onError={() => {
+                    setTurnstileError('Security verification failed. Please try again.');
+                    setTurnstileToken(null);
+                  }}
+                  onExpire={() => {
+                    setTurnstileToken(null);
+                    setTurnstileError('Security verification expired. Please try again.');
+                  }}
+                  options={{
+                    theme: 'light',
+                    size: 'normal',
+                  }}
+                />
+              </div>
+            ) : (
+              <Alert variant="error" role="alert">
+                <p className="text-body-sm">
+                  <strong>Security Configuration Missing:</strong> The Turnstile site key is not configured.
+                  Please add <code>NEXT_PUBLIC_TURNSTILE_SITE_KEY</code> to your environment variables.
+                  <br /><br />
+                  Get your free site key at{' '}
+                  <a
+                    href="https://dash.cloudflare.com/sign-up"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline font-medium"
+                  >
+                    Cloudflare Dashboard
+                  </a>
+                </p>
+              </Alert>
+            )}
+
+            {turnstileError && (
+              <p className="text-body-sm text-error-600" role="alert">
+                {turnstileError}
+              </p>
+            )}
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              onClick={handleContinue}
+              size="lg"
+              disabled={!turnstileToken}
+            >
+              Continue
+            </Button>
+          </div>
+        </>
       )}
     </div>
   );
