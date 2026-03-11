@@ -369,24 +369,31 @@ export async function calculateRoute(locationGroup: LocationGroup): Promise<Rout
   // Work backwards from latest pickup
   let currentPickupMinutes = latestPickupMinutes;
 
-  // Add pickups in reverse order (last pickup first)
+  // Build stops in reverse order (last pickup to first pickup)
+  // Mapbox returns route legs in order: leg 0 = waypoint 0 to waypoint 1, leg 1 = waypoint 1 to waypoint 2, etc.
+  // When iterating backwards over riders, the leg index is i (which gives us the leg from pickup i to next stop)
   for (let i = locationGroup.riders.length - 1; i >= 0; i--) {
     const rider = locationGroup.riders[i];
     const order = i + 1;
 
-    // Distance and duration from previous stop (or 0 for first pickup)
-    const distanceFromPrevious = i > 0
-      ? (routeResult.distances[i - 1] * 0.000621371) // Convert meters to miles
+    // The leg index for the route from pickup i to the next stop is i
+    // This works because:
+    // - Last pickup (i=2): leg 2 goes from pickup 2 to voting location
+    // - Middle pickup (i=1): leg 1 goes from pickup 1 to pickup 2
+    // - First pickup (i=0): leg 0 goes from pickup 0 to pickup 1
+    const legIndex = i;
+
+    const distanceFromPrevious = legIndex >= 0 && legIndex < routeResult.distances.length
+      ? (routeResult.distances[legIndex] * 0.000621371) // Convert meters to miles
       : 0;
 
-    const driveTimeFromPrevious = i > 0
-      ? Math.round(routeResult.durations[i - 1] / 60) // Convert seconds to minutes
+    const driveTimeFromPrevious = legIndex >= 0 && legIndex < routeResult.durations.length
+      ? Math.round(routeResult.durations[legIndex] / 60) // Convert seconds to minutes
       : 0;
 
     // Adjust pickup time based on drive time from previous stop
-    if (i > 0) {
-      currentPickupMinutes -= driveTimeFromPrevious;
-    }
+    // Each pickup needs to happen earlier by the drive time from the previous pickup
+    currentPickupMinutes -= driveTimeFromPrevious;
 
     stops.push({
       rider: {
@@ -407,7 +414,28 @@ export async function calculateRoute(locationGroup: LocationGroup): Promise<Rout
   }
 
   // Reverse to get correct order (first pickup first)
+  // After reversing, the distances will be correct for display
   stops.reverse();
+
+  // Now fix up the distanceFromPrevious and driveTimeFromPrevious values
+  // After reversing, these values need to correspond to the actual route order
+  for (let i = 0; i < stops.length; i++) {
+    if (i === 0) {
+      // First stop has no previous
+      stops[i].distanceFromPrevious = 0;
+      stops[i].driveTimeFromPrevious = 0;
+    } else {
+      // For stop i, the distance from previous is the leg from stop i-1 to stop i
+      // In Mapbox results, this is distances[i-1]
+      const legIndex = i - 1;
+      stops[i].distanceFromPrevious = legIndex < routeResult.distances.length
+        ? (routeResult.distances[legIndex] * 0.000621371)
+        : 0;
+      stops[i].driveTimeFromPrevious = legIndex < routeResult.durations.length
+        ? Math.round(routeResult.durations[legIndex] / 60)
+        : 0;
+    }
+  }
 
   // Calculate totals
   const totalDistance = routeResult.totalDistance * 0.000621371; // Convert meters to miles

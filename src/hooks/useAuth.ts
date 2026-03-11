@@ -62,8 +62,6 @@ export function useAuth(): UseAuthReturn {
 
     async function initializeAuth() {
       try {
-        console.log('[useAuth] Starting auth initialization...');
-
         // Add a timeout to prevent infinite loading
         timeoutId = setTimeout(() => {
           if (mounted) {
@@ -76,9 +74,7 @@ export function useAuth(): UseAuthReturn {
           }
         }, 10000); // 10 second timeout
 
-        console.log('[useAuth] Calling supabase.auth.getSession()...');
         const { data: { session }, error } = await supabase.auth.getSession();
-        console.log('[useAuth] Got session:', session ? 'Found session' : 'No session', 'Error:', error);
 
         clearTimeout(timeoutId);
 
