@@ -10,6 +10,7 @@ export type { AdminProtectedProps } from './AdminProtected';
 export { ErrorBoundary } from './ErrorBoundary';
 
 export { VolunteerEditModal } from './VolunteerEditModal';
+export { RiderInfoModal } from './RiderInfoModal';
 export { DispatchTab } from "./DispatchTab";
 export { RiderGroupCard } from "./RiderGroupCard";
 export { DriverAssigner } from "./DriverAssigner";

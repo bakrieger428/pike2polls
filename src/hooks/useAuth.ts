@@ -58,10 +58,29 @@ export function useAuth(): UseAuthReturn {
   // Initialize auth state from current session
   useEffect(() => {
     let mounted = true;
+    let timeoutId: NodeJS.Timeout;
 
     async function initializeAuth() {
       try {
+        console.log('[useAuth] Starting auth initialization...');
+
+        // Add a timeout to prevent infinite loading
+        timeoutId = setTimeout(() => {
+          if (mounted) {
+            console.error('[useAuth] Auth initialization timed out after 10 seconds');
+            setState((prev) => ({
+              ...prev,
+              isLoading: false,
+              error: 'Authentication initialization timed out. Please refresh the page.',
+            }));
+          }
+        }, 10000); // 10 second timeout
+
+        console.log('[useAuth] Calling supabase.auth.getSession()...');
         const { data: { session }, error } = await supabase.auth.getSession();
+        console.log('[useAuth] Got session:', session ? 'Found session' : 'No session', 'Error:', error);
+
+        clearTimeout(timeoutId);
 
         if (mounted) {
           const user = session?.user ?? null;
@@ -77,6 +96,8 @@ export function useAuth(): UseAuthReturn {
           });
         }
       } catch (err) {
+        clearTimeout(timeoutId);
+        console.error('[useAuth] Auth initialization threw error:', err);
         if (mounted) {
           setState((prev) => ({
             ...prev,

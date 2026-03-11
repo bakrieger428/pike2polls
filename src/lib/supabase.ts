@@ -151,6 +151,10 @@ export interface Signup {
   liability_waiver_agreed: boolean;
   disclaimer_agreed: boolean;
   status: 'pending' | 'confirmed' | 'cancelled';
+  contacted?: boolean;
+  accepted_terms?: boolean;
+  pickup_confirmed?: boolean;
+  admin_notes?: string;
 }
 
 export type SignupInsert = Omit<Signup, 'id' | 'created_at'>;

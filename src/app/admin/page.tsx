@@ -6,7 +6,7 @@ import { Button, Card, Alert } from '@/components/ui';
 import { Container } from '@/components/layout';
 import { supabase, TABLES, type Signup, type Volunteer } from '@/lib/supabase';
 import Link from 'next/link';
-import { AdminProtected, VolunteerEditModal, DispatchTab } from '@/components/admin';
+import { AdminProtected, VolunteerEditModal, DispatchTab, RiderInfoModal } from '@/components/admin';
 import { format } from 'date-fns';
 
 export const dynamic = 'force-dynamic';
@@ -22,6 +22,7 @@ function DashboardContent() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'cancelled'>('all');
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string; type: 'signup' | 'volunteer' } | null>(null);
   const [editingVolunteer, setEditingVolunteer] = useState<Volunteer | null>(null);
+  const [selectedSignup, setSelectedSignup] = useState<Signup | null>(null);
 
   useEffect(() => {
     loadData();
@@ -326,6 +327,16 @@ function DashboardContent() {
           />
         )}
 
+        {/* Rider Info Modal */}
+        {selectedSignup && (
+          <RiderInfoModal
+            signup={selectedSignup}
+            availableDrivers={volunteers}
+            onClose={() => setSelectedSignup(null)}
+            onSave={loadData}
+          />
+        )}
+
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           <Card className="text-center p-4">
@@ -495,9 +506,12 @@ function DashboardContent() {
                             {format(new Date(signup.created_at), 'MM/dd/yyyy')}
                           </td>
                           <td className="px-4 py-3">
-                            <div className="text-body-md font-medium text-text-primary">
+                            <button
+                              onClick={() => setSelectedSignup(signup)}
+                              className="text-body-md font-medium text-primary-600 hover:text-primary-700 hover:underline text-left"
+                            >
                               {signup.first_name} {signup.last_name}
-                            </div>
+                            </button>
                             {signup.address && (
                               <div className="text-caption-sm text-text-tertiary mt-1">
                                 {signup.address}
