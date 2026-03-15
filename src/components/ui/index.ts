@@ -22,3 +22,6 @@ export type { CardProps } from './Card';
 
 export { Alert } from './Alert';
 export type { AlertProps, AlertVariant } from './Alert';
+
+export { Skeleton, SkeletonCard, SkeletonList, SkeletonTable } from './Skeleton';
+export type { SkeletonProps } from './Skeleton';

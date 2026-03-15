@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+   ______                            __
+  / ____/___  ____ ___  ____  __  __/ /____  _____
+ / /   / __ \/ __ `__ \/ __ \/ / / / __/ _ \/ ___/
+/ /___/ /_/ / / / / / / /_/ / /_/ / /_/  __/ /
+\____/\____/_/ /_/ /_/ .___/\__,_/\__/\___/_/
+                    /_/
+        Created with Perplexity Computer
+        https://www.perplexity.ai/computer
+-->
+<meta name="generator" content="Perplexity Computer">
+<meta name="author" content="Perplexity Computer">
+<meta property="og:see_also" content="https://www.perplexity.ai/computer">
+<link rel="author" href="https://www.perplexity.ai/computer">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rides to the Polls — How Transportation Shapes American Elections</title>
+<meta name="description" content="An interactive analysis of voter transportation programs, their statistical impact on elections, and the history of getting Americans to the ballot box.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<!-- Navigation -->
+<nav class="main-nav" id="mainNav">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo" aria-label="Rides to the Polls">
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="16" cy="16" r="14"/>
+        <path d="M10 16l4 4 8-8"/>
+      </svg>
+      <span>Rides to the Polls</span>
+    </a>
+    <div class="nav-links">
+      <a href="#statistics">Statistics</a>
+      <a href="#timeline">Timeline</a>
+      <a href="#map">Map</a>
+      <a href="#simulator">Simulator</a>
+      <a href="#cases">Cases</a>
+    </div>
+    <button class="theme-toggle" data-theme-toggle aria-label="Switch theme">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="hero" id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Interactive Research & Analysis</p>
+    <h1 class="hero-title">The Ride That<br>Decides Elections</h1>
+    <p class="hero-subtitle">From church vans in the civil rights era to Uber's election day discounts, transportation to the polls has shaped who votes — and who wins. Explore the data, the history, and the impact.</p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="hero-stat-number" data-count="30">0</span><span class="hero-stat-suffix">pp</span>
+        <span class="hero-stat-label">Turnout gap: car vs. no car</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-number" data-count="780">0</span><span class="hero-stat-suffix">K</span>
+        <span class="hero-stat-label">Non-voters citing transport (2022)</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-number" data-count="3">0</span><span class="hero-stat-suffix">M+</span>
+        <span class="hero-stat-label">Lyft rides to polls (cumulative)</span>
+      </div>
+    </div>
+    <a href="#statistics" class="hero-cta">Explore the Data</a>
+  </div>
+  <div class="scroll-indicator">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+  </div>
+</header>
+
+<!-- Statistics Section -->
+<section class="section section-stats" id="statistics">
+  <div class="section-inner">
+    <div class="section-header">
+      <p class="section-eyebrow">Statistical Analysis</p>
+      <h2 class="section-title">The Numbers Behind the Rides</h2>
+      <p class="section-desc">Academic research and Census data reveal the measurable impact of transportation barriers on voter turnout across demographics.</p>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card" data-animate>
+        <div class="kpi-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+        </div>
+        <div class="kpi-value"><span data-count="66">0</span>%</div>
+        <div class="kpi-label">Turnout with car access</div>
+        <div class="kpi-sub">vs. 36% without — a 30-point gap</div>
+        <div class="kpi-source">Harvard/BU Study, Michigan 2018</div>
+      </div>
+      <div class="kpi-card" data-animate>
+        <div class="kpi-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="kpi-value"><span data-count="29">0</span>%</div>
+        <div class="kpi-label">Youth non-voters citing transport</div>
+        <div class="kpi-sub">38% among young people of color</div>
+        <div class="kpi-source">CIRCLE/Tufts University, 2016</div>
+      </div>
+      <div class="kpi-card" data-animate>
+        <div class="kpi-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <div class="kpi-value"><span data-count="20">0</span>%</div>
+        <div class="kpi-label">Turnout drop per extra mile</div>
+        <div class="kpi-sub">1-mile increase to polling location</div>
+        <div class="kpi-source">Multiple studies, cited by Lyft</div>
+      </div>
+      <div class="kpi-card" data-animate>
+        <div class="kpi-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><path d="M1 10h22"/></svg>
+        </div>
+        <div class="kpi-value"><span data-count="1688">0</span></div>
+        <div class="kpi-label">Polling places closed (2012–18)</div>
+        <div class="kpi-sub">In formerly VRA-covered states</div>
+        <div class="kpi-source">Leadership Conference on Civil Rights</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="chart-row">
+      <div class="chart-card">
+        <h3 class="chart-title">Who Faces Transportation Barriers?</h3>
+        <p class="chart-desc">Rideshare usage to polls by demographic, compared to average. Lower-income and disabled voters depend most heavily on transportation assistance.</p>
+        <div class="chart-container">
+          <canvas id="demographicChart"></canvas>
+        </div>
+        <p class="chart-source">Source: Lyft 2024 Economic Impact Report</p>
+      </div>
+      <div class="chart-card">
+        <h3 class="chart-title">Youth Voter Turnout in Midterms</h3>
+        <p class="chart-desc">Youth turnout more than doubled from 2014 to 2018 — the same cycle rideshare companies launched election day programs.</p>
+        <div class="chart-container">
+          <canvas id="youthChart"></canvas>
+        </div>
+        <p class="chart-source">Source: CIRCLE/Tufts University</p>
+      </div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-card chart-full">
+        <h3 class="chart-title">Disability Turnout Gap Over Time</h3>
+        <p class="chart-desc">Voters with disabilities consistently turn out at lower rates, with transportation cited at 4x the rate of non-disabled voters.</p>
+        <div class="chart-container chart-container-wide">
+          <canvas id="disabilityChart"></canvas>
+        </div>
+        <p class="chart-source">Source: Rutgers University / U.S. Election Assistance Commission</p>
+      </div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-card">
+        <h3 class="chart-title">Reasons for Not Voting (2022)</h3>
+        <p class="chart-desc">While transportation is cited as the primary reason by only 2% of non-voters, transportation-adjacent factors affect over 40%.</p>
+        <div class="chart-container">
+          <canvas id="reasonsChart"></canvas>
+        </div>
+        <p class="chart-source">Source: U.S. Census Bureau CPS 2022</p>
+      </div>
+      <div class="chart-card">
+        <h3 class="chart-title">Rideshare Election Day Surge by State (2022)</h3>
+        <p class="chart-desc">Competitive races correlate with higher rideshare usage on Election Day. Georgia's Senate race drove the biggest spike.</p>
+        <div class="chart-container">
+          <canvas id="surgeChart"></canvas>
+        </div>
+        <p class="chart-source">Source: Lyft Internal Data, 2022</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Interactive Timeline -->
+<section class="section section-timeline" id="timeline">
+  <div class="section-inner">
+    <div class="section-header">
+      <p class="section-eyebrow">Historical Analysis</p>
+      <h2 class="section-title">170+ Years of Rides to the Polls</h2>
+      <p class="section-desc">From political machines hauling voters in horse-drawn carriages to church vans on Sunday mornings — trace the evolution of voter transportation in America.</p>
+    </div>
+    <div class="timeline-controls">
+      <button class="era-btn active" data-era="all">All Eras</button>
+      <button class="era-btn" data-era="early">1850s–1950s</button>
+      <button class="era-btn" data-era="civil-rights">1955–1970</button>
+      <button class="era-btn" data-era="modern">1990s–2010s</button>
+      <button class="era-btn" data-era="rideshare">2014–2026</button>
+    </div>
+    <div class="timeline-wrapper" id="timelineWrapper">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- Interactive US Map -->
+<section class="section section-map" id="map">
+  <div class="section-inner">
+    <div class="section-header">
+      <p class="section-eyebrow">Geographic Analysis</p>
+      <h2 class="section-title">Where Transportation Shapes Votes</h2>
+      <p class="section-desc">Explore state-by-state laws, active programs, and the average distance voters travel to reach the polls.</p>
+    </div>
+    <div class="map-legend">
+      <div class="legend-item"><span class="legend-dot" style="background: var(--color-success)"></span> No restrictions</div>
+      <div class="legend-item"><span class="legend-dot" style="background: var(--color-warning)"></span> Regulations / disclosure</div>
+      <div class="legend-item"><span class="legend-dot" style="background: var(--color-error)"></span> Restrictions on rides</div>
+      <div class="legend-item"><span class="legend-dot" style="background: var(--color-text-muted)"></span> Ambiguous / no specific law</div>
+    </div>
+    <div class="map-container" id="usMap"></div>
+    <div class="map-tooltip" id="mapTooltip"></div>
+  </div>
+</section>
+
+<!-- Interactive Election Simulator -->
+<section class="section section-simulator" id="simulator">
+  <div class="section-inner">
+    <div class="section-header">
+      <p class="section-eyebrow">Interactive Application</p>
+      <h2 class="section-title">Election Impact Simulator</h2>
+      <p class="section-desc">Model how transportation programs could change election outcomes. Adjust voter demographics, transportation access, and program investment to see the projected effect on turnout and margin of victory.</p>
+    </div>
+    <div class="simulator-container">
+      <div class="sim-controls">
+        <h3 class="sim-section-title">Election Parameters</h3>
+        <div class="sim-group">
+          <label class="sim-label" for="simElection">Select Historical Election</label>
+          <select id="simElection" class="sim-select">
+            <option value="ga2021">Georgia Senate Runoff 2021</option>
+            <option value="ga2022">Georgia Senate 2022 (Warnock v. Walker)</option>
+            <option value="mi2018">Michigan Governor 2018</option>
+            <option value="nv2016">Nevada Senate 2016</option>
+            <option value="wi2024">Wisconsin 2024</option>
+            <option value="custom">Custom Scenario</option>
+          </select>
+        </div>
+        <div class="sim-group">
+          <label class="sim-label" for="simEligible">Eligible Voters in District</label>
+          <input type="range" id="simEligible" min="100000" max="10000000" value="5000000" step="50000" class="sim-slider">
+          <span class="sim-value" id="simEligibleVal">5,000,000</span>
+        </div>
+        <div class="sim-group">
+          <label class="sim-label" for="simBaseTurnout">Baseline Turnout (%)</label>
+          <input type="range" id="simBaseTurnout" min="20" max="80" value="55" step="1" class="sim-slider">
+          <span class="sim-value" id="simBaseTurnoutVal">55%</span>
+        </div>
+        <div class="sim-group">
+          <label class="sim-label" for="simNoCarPct">Voters Without Car Access (%)</label>
+          <input type="range" id="simNoCarPct" min="1" max="40" value="12" step="1" class="sim-slider">
+          <span class="sim-value" id="simNoCarPctVal">12%</span>
+        </div>
+
+        <h3 class="sim-section-title">Transportation Program</h3>
+        <div class="sim-group">
+          <label class="sim-label" for="simProgramReach">Program Reach (% of no-car voters served)</label>
+          <input type="range" id="simProgramReach" min="0" max="100" value="30" step="5" class="sim-slider">
+          <span class="sim-value" id="simProgramReachVal">30%</span>
+        </div>
+        <div class="sim-group">
+          <label class="sim-label" for="simConversion">Ride-to-Vote Conversion Rate (%)</label>
+          <input type="range" id="simConversion" min="10" max="90" value="65" step="5" class="sim-slider">
+          <span class="sim-value" id="simConversionVal">65%</span>
+        </div>
+        <div class="sim-group">
+          <label class="sim-label" for="simPartisanLean">Lean of Served Voters (% Dem)</label>
+          <input type="range" id="simPartisanLean" min="30" max="90" value="65" step="1" class="sim-slider">
+          <span class="sim-value" id="simPartisanLeanVal">65% Dem</span>
+        </div>
+        <div class="sim-group">
+          <label class="sim-label" for="simOrigMargin">Original Election Margin (+ = Dem win)</label>
+          <input type="range" id="simOrigMargin" min="-200000" max="200000" value="55000" step="1000" class="sim-slider">
+          <span class="sim-value" id="simOrigMarginVal">+55,000</span>
+        </div>
+      </div>
+
+      <div class="sim-results">
+        <h3 class="sim-section-title">Projected Impact</h3>
+        <div class="sim-result-grid">
+          <div class="sim-result-card sim-card-highlight">
+            <div class="sim-result-label">Additional Voters</div>
+            <div class="sim-result-value" id="simAddlVoters">0</div>
+          </div>
+          <div class="sim-result-card">
+            <div class="sim-result-label">New Turnout Rate</div>
+            <div class="sim-result-value" id="simNewTurnout">55%</div>
+          </div>
+          <div class="sim-result-card">
+            <div class="sim-result-label">Net Vote Shift (Dem)</div>
+            <div class="sim-result-value" id="simNetShift">0</div>
+          </div>
+          <div class="sim-result-card">
+            <div class="sim-result-label">Net Vote Shift (Rep)</div>
+            <div class="sim-result-value" id="simNetShiftRep">0</div>
+          </div>
+          <div class="sim-result-card sim-card-outcome">
+            <div class="sim-result-label">Original Margin</div>
+            <div class="sim-result-value" id="simOrigResult">—</div>
+          </div>
+          <div class="sim-result-card sim-card-outcome">
+            <div class="sim-result-label">Adjusted Margin</div>
+            <div class="sim-result-value" id="simAdjResult">—</div>
+          </div>
+        </div>
+
+        <div class="sim-verdict" id="simVerdict"></div>
+
+        <div class="sim-bar-viz">
+          <h4 class="sim-bar-title">Vote Distribution</h4>
+          <div class="sim-bar-container">
+            <div class="sim-bar sim-bar-dem" id="simBarDem"><span id="simBarDemLabel">Dem</span></div>
+            <div class="sim-bar sim-bar-rep" id="simBarRep"><span id="simBarRepLabel">Rep</span></div>
+          </div>
+          <div class="sim-bar-labels">
+            <span id="simDemPct">50%</span>
+            <span id="simRepPct">50%</span>
+          </div>
+        </div>
+
+        <div class="sim-methodology">
+          <h4>Methodology</h4>
+          <p>This simulator models the marginal impact of voter transportation programs using parameters derived from published research. The 30-point turnout gap between car-owning and non-car-owning voters (Harvard/BU, Michigan 2018) serves as the baseline. Conversion rates reflect GOTV research from Yale ISPS. Partisan lean estimates use Census CPS demographic data on non-car-owning populations. Results are illustrative projections, not predictions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Case Studies -->
+<section class="section section-cases" id="cases">
+  <div class="section-inner">
+    <div class="section-header">
+      <p class="section-eyebrow">Case Studies</p>
+      <h2 class="section-title">Programs That Changed Outcomes</h2>
+      <p class="section-desc">From church vans in Milwaukee to rideshare codes in Georgia — detailed examinations of transportation programs and their electoral impact.</p>
+    </div>
+    <div class="cases-grid" id="casesGrid">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- Key Findings -->
+<section class="section section-findings" id="findings">
+  <div class="section-inner">
+    <div class="section-header">
+      <p class="section-eyebrow">Research Conclusions</p>
+      <h2 class="section-title">What the Evidence Shows</h2>
+    </div>
+    <div class="findings-grid">
+      <div class="finding-card finding-positive">
+        <h3>Strong Evidence For Impact</h3>
+        <ul>
+          <li>30-point turnout gap between voters with and without car access is causal, not just correlational</li>
+          <li>Polling distance increases of just 1 mile reduce turnout up to 20%</li>
+          <li>Youth turnout doubled in 2018 midterms, coinciding with first major rideshare election programs</li>
+          <li>~780,000 Americans directly cited transportation as their reason for not voting in 2022</li>
+          <li>Disabled voters cite transportation barriers at 4x the rate of non-disabled voters</li>
+        </ul>
+      </div>
+      <div class="finding-card finding-nuance">
+        <h3>Important Caveats</h3>
+        <ul>
+          <li>No U.S. randomized controlled trial exists isolating rides-to-polls specifically</li>
+          <li>Brazil's most rigorous study found a null effect of free transit on turnout</li>
+          <li>Transportation cannot be cleanly separated from other GOTV factors in elections like Georgia 2021</li>
+          <li>Rideshare data is self-reported by companies with business incentives</li>
+          <li>No peer-reviewed cost-per-additional-voter study exists for these programs</li>
+        </ul>
+      </div>
+      <div class="finding-card finding-legal">
+        <h3>Legal Landscape</h3>
+        <ul>
+          <li>Georgia Election Board ruled Lyft discounts violated state law (2025) — first such ruling</li>
+          <li>Free rides (nonprofits) treated differently than discounted rides (corporate) under Georgia ruling</li>
+          <li>Michigan banned voter transportation for 129 years (1891–2020)</li>
+          <li>Texas requires disclosure for organized rides (HB 521, 2025)</li>
+          <li>FEC allows nonpartisan GOTV rides under 11 C.F.R. § 114.4(d)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="main-footer">
+  <div class="footer-inner">
+    <div class="footer-sources">
+      <h4>Key Sources</h4>
+      <p>U.S. Census Bureau CPS 2022 &middot; CIRCLE/Tufts University &middot; Rutgers/EAC Disability Report &middot; Brady & McNulty, APSR 2011 &middot; Pereira et al., Electoral Studies 2023 &middot; Democracy Docket &middot; Lyft Economic Impact Report 2024 &middot; Brennan Center for Justice &middot; Leadership Conference on Civil Rights &middot; Yale ISPS GOTV Research</p>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-note">This analysis synthesizes published academic research, government data, and reporting. Statistical projections in the simulator are illustrative models, not predictions. Sources are cited throughout.</p>
+      <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer" class="footer-attr">Created with Perplexity Computer</a>
+    </div>
+  </div>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

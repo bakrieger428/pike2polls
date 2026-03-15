@@ -22,6 +22,7 @@ export function LayoutWrapper({ children }: LayoutWrapperProps) {
           { label: 'Home', href: '/' },
           { label: 'Volunteer', href: '/volunteer' },
           { label: 'FAQ', href: '/faq' },
+          { label: 'Rides to the Polls', href: '/rides-to-polls' },
         ]}
         cta={{ label: 'Sign Up', href: '/signup', ariaLabel: 'Sign up for a ride to the polls' }}
         isMobileMenuOpen={isMobileMenuOpen}

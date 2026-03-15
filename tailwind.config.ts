@@ -6,12 +6,37 @@ const config: Config = {
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       // ============================================================================
       // COLOR PALETTE - WCAG 2.1 AA COMPLIANT
       // ============================================================================
       colors: {
+        // RIDES TO THE POLLS COLORS - Civic/Authoritative
+        'rtp-bg': '#f5f4f0',
+        'rtp-surface': '#faf9f6',
+        'rtp-surface-2': '#ffffff',
+        'rtp-surface-offset': '#edecea',
+        'rtp-surface-dynamic': '#e2e0dc',
+        'rtp-divider': '#d4d2cd',
+        'rtp-border': '#c8c5bf',
+        'rtp-text': '#1a1a2e',
+        'rtp-text-muted': '#5a5a6e',
+        'rtp-text-faint': '#9a9aab',
+        'rtp-text-inverse': '#f5f4f0',
+        'rtp-primary': '#1a3a5c',
+        'rtp-primary-hover': '#0f2842',
+        'rtp-primary-active': '#091c30',
+        'rtp-primary-highlight': '#d0dde8',
+        'rtp-accent': '#c23b22',
+        'rtp-accent-hover': '#a32e18',
+        'rtp-dem': '#2166ac',
+        'rtp-rep': '#b2182b',
+        'rtp-success': '#2d7d46',
+        'rtp-warning': '#bf7615',
+        'rtp-error': '#b2182b',
+
         // PRIMARY COLORS - Democratic Blue (Trust, Civic Engagement)
         primary: {
           50: '#eff6ff',
@@ -136,6 +161,19 @@ const config: Config = {
           light: '#f1f5f9',
           dark: '#cbd5e1',
           focus: '#3b82f6',
+        },
+
+        // DARK MODE COLORS
+        dark: {
+          background: '#0f172a',
+          surface: '#1e293b',
+          surfaceHover: '#334155',
+          border: '#334155',
+          text: {
+            primary: '#f1f5f9',
+            secondary: '#cbd5e1',
+            tertiary: '#94a3b8',
+          },
         },
       },
 

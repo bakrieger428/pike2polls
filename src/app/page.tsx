@@ -1,37 +1,13 @@
 import Link from 'next/link';
 import { Card, Alert } from '@/components/ui';
 import { Container } from '@/components/layout';
+import { HeroSection } from '@/components/HeroSection';
 
 export default function HomePage() {
   return (
     <>
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary-50 to-secondary-50 py-section" aria-labelledby="hero-heading">
-        <Container>
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 id="hero-heading" className="text-display-lg font-bold text-text-primary mb-6 text-balance">
-              Free Rides to the Polls for Pike Township Residents
-            </h1>
-            <p className="text-body-lg text-text-secondary mb-8 text-balance">
-              Voting is a constitutional right, and Annette Johnson believes no citizen should be denied that privilege simply because they lack transportation. She&apos;s committed to ensuring every Pike Township resident can access the polls—regardless of who they choose to vote for.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link
-                href="/signup"
-                className="btn btn-primary px-8 py-4 text-body-lg min-h-[48px] inline-flex items-center justify-center gap-2 rounded-button font-medium transition-all duration-200 hover:bg-primary-700 focus-visible:outline-focus-ring focus-visible:outline-offset-2"
-              >
-                Sign Up for a Ride
-              </Link>
-              <Link
-                href="/faq"
-                className="btn btn-outline px-8 py-4 text-body-lg min-h-[48px] inline-flex items-center justify-center gap-2 rounded-button font-medium transition-all duration-200 hover:bg-primary-50 focus-visible:outline-focus-ring focus-visible:outline-offset-2"
-              >
-                Learn More
-              </Link>
-            </div>
-          </div>
-        </Container>
-      </section>
+      <HeroSection />
 
       {/* How It Works Section */}
       <section className="py-section bg-background" aria-labelledby="how-it-works-heading">

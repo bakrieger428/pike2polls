@@ -58,6 +58,11 @@ export interface HeaderProps {
    * Mobile menu toggle callback
    */
   onMobileMenuToggle?: () => void;
+
+  /**
+   * Theme toggle component
+   */
+  themeToggle?: React.ReactNode;
 }
 
 const defaultNavItems: NavItem[] = [
@@ -87,6 +92,7 @@ export function Header({
   cta,
   isMobileMenuOpen = false,
   onMobileMenuToggle,
+  themeToggle,
 }: HeaderProps) {
   const pathname = usePathname();
 
@@ -130,9 +136,14 @@ export function Header({
             })}
           </nav>
 
-          {/* CTA Button (Desktop) */}
-          {cta && (
-            <div className="hidden md:block">
+          {/* Theme Toggle & CTA Button (Desktop) */}
+          <div className="hidden md:flex items-center gap-2">
+            {themeToggle && (
+              <div className="flex items-center">
+                {themeToggle}
+              </div>
+            )}
+            {cta && (
               <Link
                 href={cta.href}
                 aria-label={cta.ariaLabel}
@@ -140,8 +151,8 @@ export function Header({
               >
                 {cta.label}
               </Link>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Mobile Menu Button */}
           {onMobileMenuToggle && (
@@ -223,6 +234,17 @@ export function Header({
                 </Link>
               );
             })}
+
+            {/* Theme Toggle in Mobile Menu */}
+            {themeToggle && (
+              <div className="flex items-center px-4 py-3">
+                {themeToggle}
+                <span className="ml-3 text-body-md font-medium text-text-secondary">
+                  Toggle Theme
+                </span>
+              </div>
+            )}
+
             {cta && (
               <div className="pt-2">
                 <Link
